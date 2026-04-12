@@ -183,6 +183,9 @@ export default function App() {
   const [mouchardTargetId, setMouchardTargetId] = useState<number | null>(null);
 
   // Vote Logic
+  // Promotion Logic
+  const [promotionPlayerIds, setPromotionPlayerIds] = useState<number[]>([]);
+  const [promotionConsumed, setPromotionConsumed] = useState(false);
   const [isVoteMode, setIsVoteMode] = useState(false);
   const [votes, setVotes] = useState<Record<number, number>>({});
   const [voteTieMessage, setVoteTieMessage] = useState<string | null>(null);
@@ -190,6 +193,13 @@ export default function App() {
   const [isVoteRevealPhase, setIsVoteRevealPhase] = useState(false);
   const [isRoleRevealed, setIsRoleRevealed] = useState(false);
   const [isDecryptingEvent, setIsDecryptingEvent] = useState(false);
+  const isVoteMode, setIsVoteMode = useState(false)
+  const votes, setVotes = useState<Record<number, number>>({})
+  const voteTieMessage, setVoteTieMessage = useState<string | null>(null)
+  const eliminatedByVoteId, setEliminatedByVoteId = useState<number | null>(null)
+  const isVoteRevealPhase, setIsVoteRevealPhase = useState(false)
+  const isRoleRevealed, setIsRoleRevealed = useState(false)
+
 
   // Hacker Logic
   const [isHackerPowerActive, setIsHackerPowerActive] = useState(false);
@@ -246,6 +256,9 @@ export default function App() {
           setDoubleAgentRoundsElapsed(data.doubleAgentRoundsElapsed || 0);
           setDoubleAgentChoice(data.doubleAgentChoice || null);
           setIsLoaded(true);
+          setPromotionPlayerIds(data.promotionPlayerIds ?? []);
+          setPromotionConsumed(data.promotionConsumed ?? false);
+
         }
       } else if (isAdminMode && !isLoaded) {
         setDoc(docRef, {
@@ -271,8 +284,13 @@ export default function App() {
           isHackerPowerActive: false,
           doubleAgentRoundsElapsed: 0,
           doubleAgentChoice: null
+          promotionPlayerIds: [],
+        promotionConsumed: false,
+
         });
         setIsLoaded(true);
+        promotionPlayerIds,
+      promotionConsumed,
       }
     });
     return () => unsubscribe();
@@ -307,6 +325,26 @@ export default function App() {
       });
     }
   }, [isAdminMode, user, isLoaded, players, phase, event, timer, isTimerRunning, codeDigits, currentNightStep, geminiTwinId, ghostTargetId, ghostRoundsElapsed, ghostSuccess, showGhostSuccessModal, mouchardTargetId, isVoteMode, votes, voteTieMessage, eliminatedByVoteId, isVoteRevealPhase, isRoleRevealed, isHackerPowerActive, doubleAgentRoundsElapsed, doubleAgentChoice]);
+useEffect(() => {
+  if (!isAdminMode) return;
+
+  if (event !== 'Promotion') {
+    setPromotionPlayerIds([]);
+    setPromotionConsumed(false);
+    return;
+  }
+
+  if (promotionPlayerIds.length === 0 && !promotionConsumed) {
+    const eligiblePlayers = players.filter((p) => p.status === 'active');
+    if (eligiblePlayers.length < 2) {
+      setPromotionPlayerIds(eligiblePlayers.map((p) => p.id));
+      return;
+    }
+
+    const shuffled = [...eligiblePlayers].sort(() => Math.random() - 0.5);
+    setPromotionPlayerIds([shuffled[0].id, shuffled[1].id]);
+  }
+}, [event, players, isAdminMode, promotionPlayerIds.length, promotionConsumed]);
 
   const confirmResetGame = (count?: number) => {
     const newPlayers = count ? generatePlayers(count) : generatePlayers(players.length);
@@ -336,6 +374,8 @@ export default function App() {
     setDoubleAgentChoice(null);
     setDismissedGameOver(false);
     setIsResetModalOpen(false);
+    setPromotionPlayerIds([]);
+    setPromotionConsumed(false);
   };
 
   const handleImageError = (imagePath: string) => {
@@ -462,11 +502,11 @@ export default function App() {
 
     // Calculate effective votes
     const effectiveVotes = Object.entries(votes).reduce((acc, [idStr, countValue]) => {
-      const id = Number(idStr);
-      const count = countValue as number;
-      acc[id] = id === mouchardTargetId ? count * 2 : count;
-      return acc;
-    }, {} as Record<number, number>);
+  const id = Number(idStr);
+  const count = countValue as number;
+  acc[id] = id === mouchardTargetId ? count * 2 : count;
+  return acc;
+}, {} as Record<number, number>);
 
     const activeVotes = Object.entries(effectiveVotes).filter(([_, countValue]) => (countValue as number) > 0);
 
