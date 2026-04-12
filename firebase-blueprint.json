@@ -1,0 +1,43 @@
+{
+  "entities": {
+    "Player": {
+      "title": "Player",
+      "description": "A player in the game",
+      "type": "object",
+      "properties": {
+        "id": { "type": "number" },
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "eliminated"] },
+        "revealed": { "type": "boolean" }
+      },
+      "required": ["id", "name", "role", "status", "revealed"]
+    },
+    "GameState": {
+      "title": "GameState",
+      "description": "The state of the game",
+      "type": "object",
+      "properties": {
+        "players": {
+          "type": "array",
+          "items": { "$ref": "#/entities/Player" }
+        },
+        "phase": { "type": "string", "enum": ["Day", "Night"] },
+        "event": { "type": "string" },
+        "timer": { "type": "number" },
+        "isTimerRunning": { "type": "boolean" },
+        "codeDigits": {
+          "type": "array"
+        },
+        "currentNightStep": { "type": "number" }
+      },
+      "required": ["players", "phase", "event", "timer", "isTimerRunning", "codeDigits", "currentNightStep"]
+    }
+  },
+  "firestore": {
+    "/games/{gameId}": {
+      "schema": { "$ref": "#/entities/GameState" },
+      "description": "The game session document"
+    }
+  }
+}

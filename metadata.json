@@ -1,0 +1,5 @@
+{
+  "name": "O.S.I : Alerte Espions - Dashboard Playtest",
+  "description": "Interface de suivi pour le playtest du jeu O.S.I au Subarashii Manga Cafe. Gestion des rôles, statuts et événements en temps réel.",
+  "requestFramePermissions": []
+}

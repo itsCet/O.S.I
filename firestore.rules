@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: games
+    // Document ID: {gameId}
+    // Fields:
+    //   - players: list (required) - Array of player objects
+    //   - phase: string (required) - 'Day' or 'Night'
+    //   - event: string (required) - Current game event
+    //   - timer: number (required) - Timer in seconds
+    //   - isTimerRunning: bool (required) - Timer state
+    //   - codeDigits: list (required) - Array of code digits
+    //   - currentNightStep: number (required) - Current step in night phase
+    //
+    // ===============================================================
+
+    // Check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Validate GameState
+    function isValidGameState(data) {
+      return data.keys().hasAll(['players', 'phase', 'event', 'timer', 'isTimerRunning', 'codeDigits', 'currentNightStep']) &&
+             data.phase in ['Day', 'Night'] &&
+             data.timer is number &&
+             data.isTimerRunning is bool &&
+             data.currentNightStep is number &&
+             data.players is list &&
+             data.codeDigits is list;
+    }
+
+    match /games/{gameId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidGameState(request.resource.data);
+      allow update: if isAuthenticated() && isValidGameState(request.resource.data);
+      allow delete: if false;
+    }
+  }
+}
