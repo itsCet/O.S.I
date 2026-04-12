@@ -722,7 +722,7 @@ export default function App() {
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-2xl flex items-center justify-center overflow-hidden shrink-0 bg-slate-900 border-2 border-slate-700 shadow-[0_0_20px_rgba(0,0,0,0.3)]">
             <img 
-              src="/logo osi.png" 
+              src="/logo_osi.png" 
               alt="OSI Logo" 
               className="w-full h-full object-cover"
               onError={(e) => {
