@@ -193,6 +193,12 @@ export default function App() {
   const [isVoteRevealPhase, setIsVoteRevealPhase] = useState(false);
   const [isRoleRevealed, setIsRoleRevealed] = useState(false);
   const [isDecryptingEvent, setIsDecryptingEvent] = useState(false);
+  const isVoteMode, setIsVoteMode = useState(false)
+  const votes, setVotes = useState<Record<number, number>>({})
+  const voteTieMessage, setVoteTieMessage = useState<string | null>(null)
+  const eliminatedByVoteId, setEliminatedByVoteId = useState<number | null>(null)
+  const isVoteRevealPhase, setIsVoteRevealPhase = useState(false)
+  const isRoleRevealed, setIsRoleRevealed = useState(false)
 
 
   // Hacker Logic
@@ -277,9 +283,9 @@ export default function App() {
           isRoleRevealed: false,
           isHackerPowerActive: false,
           doubleAgentRoundsElapsed: 0,
-          doubleAgentChoice: null,
+          doubleAgentChoice: null
           promotionPlayerIds: [],
-          promotionConsumed: false,
+        promotionConsumed: false,
 
         });
         setIsLoaded(true);
