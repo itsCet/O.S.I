@@ -295,21 +295,56 @@ export const NightActionModal: React.FC<NightActionModalProps> = ({
                           <span className="text-slate-400 text-sm uppercase font-mono">Cible de l'enquête</span>
                           <span className="text-white font-bold">{players.find(p => p.id === investigatorTargetId)?.name}</span>
                         </div>
+
+                        <div className="py-4 border-y border-slate-800 text-center">
+                          <p className="text-slate-500 text-[10px] uppercase font-mono mb-2">Résultat de l'analyse</p>
+                          {(() => {
+                            const target = players.find(p => p.id === investigatorTargetId);
+                            if (!target) return null;
+                            const activeRoles = [
+                              'Espion', 'Ingénieur', 'Enquêteur', 'Médecin', 
+                              'Agent Gemini', 'Agent Double', 'Stratège', 
+                              'Polygraphiste', 'Agent Fantôme'
+                            ];
+                            const isActive = activeRoles.includes(target.role);
+                            return (
+                              <div className={`text-2xl font-display font-black uppercase tracking-tighter ${isActive ? 'text-emerald-400' : 'text-slate-400'}`}>
+                                {isActive ? 'ACTIF' : 'INACTIF'}
+                              </div>
+                            );
+                          })()}
+                        </div>
                         
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => setShowInvestigatorResult(true)}
-                            disabled={showInvestigatorResult}
-                            className={`flex-1 py-4 rounded-xl font-bold uppercase tracking-widest transition-all ${showInvestigatorResult ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/20'}`}
-                          >
-                            {showInvestigatorResult ? 'Résultat Diffusé' : 'Diffuser'}
-                          </button>
-                          {showInvestigatorResult && (
+                        <div className="flex flex-col gap-2">
+                          <div className="flex gap-2">
                             <button
-                              onClick={() => setShowInvestigatorResult(false)}
-                              className="px-6 py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold uppercase tracking-widest transition-all border border-slate-700"
+                              onClick={() => setShowInvestigatorResult(true)}
+                              disabled={showInvestigatorResult}
+                              className={`flex-1 py-4 rounded-xl font-bold uppercase tracking-widest transition-all ${showInvestigatorResult ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/20'}`}
                             >
-                              Masquer
+                              {showInvestigatorResult ? 'Résultat Diffusé' : 'Diffuser'}
+                            </button>
+                            {showInvestigatorResult && (
+                              <button
+                                onClick={() => setShowInvestigatorResult(false)}
+                                className="px-6 py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold uppercase tracking-widest transition-all border border-slate-700"
+                              >
+                                Masquer
+                              </button>
+                            )}
+                          </div>
+                          
+                          {!showInvestigatorResult && (
+                            <button
+                              onClick={() => {
+                                setShowInvestigatorResult(true);
+                                if (currentNightStep < filteredSteps.length - 1) {
+                                  setCurrentNightStep(prev => prev + 1);
+                                }
+                              }}
+                              className="w-full py-3 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 rounded-xl font-bold uppercase tracking-widest transition-all border border-indigo-500/30 text-xs"
+                            >
+                              Diffuser & Étape Suivante
                             </button>
                           )}
                         </div>
