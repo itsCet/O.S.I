@@ -32,12 +32,13 @@ import {
   ClipboardList,
   Moon
 } from 'lucide-react';
+import { NightActionModal } from './components/NightActionModal';
 
 // --- Types ---
 
-type PlayerStatus = 'active' | 'eliminated';
+export type PlayerStatus = 'active' | 'eliminated';
 
-type RoleType = 
+export type RoleType = 
   | 'Espion' 
   | 'Agent Secret' 
   | 'Ingénieur' 
@@ -54,7 +55,7 @@ type RoleType =
   | 'Agent Fantôme' 
   | 'Recrue';
 
-interface Player {
+export interface Player {
   id: number;
   name: string;
   role: RoleType;
@@ -62,9 +63,9 @@ interface Player {
   revealed: boolean;
 }
 
-type GamePhase = 'Day' | 'Night';
+export type GamePhase = 'Day' | 'Night';
 
-type GameEvent = 
+export type GameEvent = 
   | 'None'
   | 'Silence' 
   | 'Mission Chaos' 
@@ -75,7 +76,7 @@ type GameEvent =
 
 // --- Constants ---
 
-const ROLES_CONFIG: Record<RoleType, { color: string; icon: React.ReactNode; description: string; phase: 'night' | 'day' | 'both'; camp: 'agent' | 'spy' | 'neutral'; image: string }> = {
+export const ROLES_CONFIG: Record<RoleType, { color: string; icon: React.ReactNode; description: string; phase: 'night' | 'day' | 'both'; camp: 'agent' | 'spy' | 'neutral'; image: string }> = {
   'Espion': { color: 'text-red-500', icon: <Eye size={16} />, description: 'Élimine un agent chaque nuit.', phase: 'night', camp: 'spy', image: '/cards/espion.png' },
   'Agent Secret': { color: 'text-cyan-400', icon: <Lock size={16} />, description: 'Détient une partie du code secret.', phase: 'both', camp: 'agent', image: '/cards/agent_secret.png' },
   'Ingénieur': { color: 'text-emerald-400', icon: <Settings size={16} />, description: 'Place un dispositif de surveillance.', phase: 'night', camp: 'agent', image: '/cards/ingenieur.png' },
@@ -155,6 +156,17 @@ const generatePlayers = (count: number): Player[] => {
 };
 
 const INITIAL_PLAYERS: Player[] = generatePlayers(8);
+
+export const NIGHT_STEPS = [
+  { role: 'Agent Gemini', action: 'Choisit son jumeau', condition: '1ère nuit uniquement' },
+  { role: 'Agent Double', action: 'Choix du camp (4 nuits max)', condition: 'Toujours' },
+  { role: 'Polygraphiste', action: 'Teste un groupe de 3 agents', condition: 'Toujours' },
+  { role: 'Ingénieur', action: 'Pose un dispositif de surveillance', condition: 'Toujours' },
+  { role: 'Enquêteur', action: 'Interroge sur le pouvoir précédent', condition: 'Dès la 2e nuit' },
+  { role: 'Espions', action: 'Désignent une cible à éliminer (Fantôme aussi)', condition: 'Toujours' },
+  { role: 'Médecin', action: 'Décide de sauver la cible (1x)', condition: 'Toujours' },
+  { role: 'Stratège', action: 'Place un mouchard (votes doubles)', condition: '1 nuit sur 2' },
+];
 
 // --- Components ---
 
@@ -665,17 +677,6 @@ export default function App() {
       setDismissedGameOver(false);
     }
   }, [gameStatus.isOver]);
-
-  const NIGHT_STEPS = [
-    { role: 'Agent Gemini', action: 'Choisit son jumeau', condition: '1ère nuit uniquement' },
-    { role: 'Agent Double', action: 'Choix du camp (4 nuits max)', condition: 'Toujours' },
-    { role: 'Polygraphiste', action: 'Teste un groupe de 3 agents', condition: 'Toujours' },
-    { role: 'Ingénieur', action: 'Pose un dispositif de surveillance', condition: 'Toujours' },
-    { role: 'Enquêteur', action: 'Interroge sur le pouvoir précédent', condition: 'Dès la 2e nuit' },
-    { role: 'Espions', action: 'Désignent une cible à éliminer (Fantôme aussi)', condition: 'Toujours' },
-    { role: 'Médecin', action: 'Décide de sauver la cible (1x)', condition: 'Toujours' },
-    { role: 'Stratège', action: 'Place un mouchard (votes doubles)', condition: '1 nuit sur 2' },
-  ];
 
   const sortedPlayers = [...players].sort((a, b) => {
     const orderDiff = (ROLE_ORDER[a.role] || 99) - (ROLE_ORDER[b.role] || 99);
@@ -1390,270 +1391,36 @@ export default function App() {
 
       {/* Night Action Modal */}
       <AnimatePresence>
-        {isNightActionModalOpen && isAdminMode && (
-          <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-slate-950/95 backdrop-blur-xl"
-            />
-            <motion.div 
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden"
-            >
-              {/* Header */}
-              <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-indigo-600/10">
-                <div>
-                  <h2 className="text-2xl font-display font-bold uppercase tracking-tight flex items-center gap-3 text-white">
-                    <Moon className="text-indigo-400" /> Guide de Nuit - Nuit {nightNumber}
-                  </h2>
-                  <p className="text-slate-400 text-xs font-mono uppercase tracking-widest mt-1">
-                    Étape {currentNightStep + 1} sur {NIGHT_STEPS.filter(s => {
-                      const roleAlive = players.some(p => p.role === (s.role === 'Espions' ? 'Espion' : s.role) && p.status === 'active');
-                      if (!roleAlive) return false;
-                      if (s.role === 'Agent Gemini') return nightNumber === 1;
-                      if (s.role === 'Agent Double') return nightNumber <= 4;
-                      if (s.role === 'Enquêteur') return nightNumber >= 2;
-                      if (s.role === 'Stratège') return nightNumber % 2 === 1;
-                      return true;
-                    }).length}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="px-3 py-1 bg-slate-800 rounded-full border border-slate-700">
-                    <span className="text-xs font-bold text-indigo-400 font-mono italic">MJ MODE</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Step Content */}
-              <div className="p-8 flex-1 overflow-y-auto custom-scrollbar">
-                {(() => {
-                  const filteredSteps = NIGHT_STEPS.filter(s => {
-                    const roleAlive = players.some(p => p.role === (s.role === 'Espions' ? 'Espion' : s.role) && p.status === 'active');
-                    if (!roleAlive) return false;
-                    if (s.role === 'Agent Gemini') return nightNumber === 1;
-                    if (s.role === 'Agent Double') return nightNumber <= 4;
-                    if (s.role === 'Enquêteur') return nightNumber >= 2;
-                    if (s.role === 'Stratège') return nightNumber % 2 === 1;
-                    return true;
-                  });
-                  const step = filteredSteps[currentNightStep];
-
-                  if (!step) return <div className="text-center text-slate-400">Fin des étapes.</div>;
-
-                  return (
-                    <div className="space-y-6">
-                      <div className="flex items-center gap-4 p-4 bg-slate-800/50 rounded-2xl border border-slate-700">
-                        <div className={`p-3 rounded-xl bg-slate-900 border border-slate-700 ${ROLES_CONFIG[step.role === 'Espions' ? 'Espion' : step.role as RoleType]?.color}`}>
-                          {ROLES_CONFIG[step.role === 'Espions' ? 'Espion' : step.role as RoleType]?.icon}
-                        </div>
-                        <div>
-                          <h3 className="text-xl font-bold text-white">{step.role}</h3>
-                          <p className="text-indigo-400 font-medium">{step.action}</p>
-                        </div>
-                      </div>
-
-                      <div className="space-y-4">
-                        {step.role === 'Agent Gemini' && (
-                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                            {players.filter(p => p.status === 'active' && p.role !== 'Agent Gemini').map(p => (
-                              <button
-                                key={p.id}
-                                onClick={() => setGeminiTwinId(p.id)}
-                                className={`p-3 rounded-xl border text-sm font-bold transition-all ${geminiTwinId === p.id ? 'bg-indigo-600 border-indigo-400 text-white shadow-lg shadow-indigo-500/20' : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500'}`}
-                              >
-                                {p.name}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-
-                        {step.role === 'Agent Double' && (
-                          <div className="flex gap-4">
-                            <button
-                              onClick={() => setDoubleAgentChoice('agent')}
-                              className={`flex-1 p-4 rounded-2xl border-2 font-bold transition-all flex flex-col items-center gap-2 ${doubleAgentChoice === 'agent' ? 'bg-cyan-500/20 border-cyan-500 text-cyan-400' : 'bg-slate-800 border-slate-700 text-slate-500'}`}
-                            >
-                              <Shield size={32} />
-                              AGENTS
-                            </button>
-                            <button
-                              onClick={() => setDoubleAgentChoice('espion')}
-                              className={`flex-1 p-4 rounded-2xl border-2 font-bold transition-all flex flex-col items-center gap-2 ${doubleAgentChoice === 'espion' ? 'bg-red-500/20 border-red-500 text-red-400' : 'bg-slate-800 border-slate-700 text-slate-500'}`}
-                            >
-                              <Eye size={32} />
-                              ESPIONS
-                            </button>
-                          </div>
-                        )}
-
-                        {step.role === 'Ingénieur' && (
-                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                            {players.filter(p => p.status === 'active').map(p => (
-                              <button
-                                key={p.id}
-                                onClick={() => setEngineerTargetId(p.id)}
-                                className={`p-3 rounded-xl border text-sm font-bold transition-all ${engineerTargetId === p.id ? 'bg-emerald-600 border-emerald-400 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500'}`}
-                              >
-                                {p.name}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-
-                        {step.role === 'Espions' && (
-                          <div className="space-y-4">
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                              {players.filter(p => p.status === 'active' && p.role !== 'Espion').map(p => (
-                                <button
-                                  key={p.id}
-                                  onClick={() => setSpyTargetId(p.id)}
-                                  className={`p-3 rounded-xl border text-sm font-bold transition-all ${spyTargetId === p.id ? 'bg-red-600 border-red-400 text-white shadow-lg shadow-red-500/20' : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500'}`}
-                                >
-                                  {p.name}
-                                </button>
-                              ))}
-                            </div>
-                            {spyTargetId && engineerTargetId === spyTargetId && (
-                              <motion.div 
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="p-4 bg-red-500/20 border border-red-500 rounded-xl flex items-center gap-3 text-red-400 font-bold"
-                              >
-                                <AlertTriangle size={24} />
-                                ATTENTION : Cible sous surveillance de l'Ingénieur !
-                              </motion.div>
-                            )}
-                          </div>
-                        )}
-
-                        {step.role === 'Médecin' && (
-                          <div className="space-y-4">
-                            <p className="text-slate-400 text-sm italic">La cible des espions est : <span className="text-white font-bold">{players.find(p => p.id === spyTargetId)?.name || 'Non définie'}</span></p>
-                            <div className="flex gap-4">
-                              <button
-                                onClick={() => setDoctorSavedId(spyTargetId)}
-                                className={`flex-1 p-4 rounded-2xl border-2 font-bold transition-all flex flex-col items-center gap-2 ${doctorSavedId === spyTargetId ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-500'}`}
-                              >
-                                <Shield size={32} />
-                                SAUVER
-                              </button>
-                              <button
-                                onClick={() => setDoctorSavedId(null)}
-                                className={`flex-1 p-4 rounded-2xl border-2 font-bold transition-all flex flex-col items-center gap-2 ${doctorSavedId === null ? 'bg-red-500/20 border-red-500 text-red-400' : 'bg-slate-800 border-slate-700 text-slate-500'}`}
-                              >
-                                <Skull size={32} />
-                                LAISSER MOURIR
-                              </button>
-                            </div>
-                          </div>
-                        )}
-
-                        {step.role === 'Stratège' && (
-                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                            {players.filter(p => p.status === 'active').map(p => (
-                              <button
-                                key={p.id}
-                                onClick={() => setMouchardTargetId(p.id)}
-                                className={`p-3 rounded-xl border text-sm font-bold transition-all ${mouchardTargetId === p.id ? 'bg-purple-600 border-purple-400 text-white shadow-lg shadow-purple-500/20' : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500'}`}
-                              >
-                                {p.name}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-
-                        {step.role === 'Enquêteur' && (
-                          <div className="p-6 bg-slate-950 rounded-2xl border border-slate-800 text-center">
-                            <Search size={48} className="text-cyan-400 mx-auto mb-4" />
-                            <p className="text-slate-300 font-medium">Demandez à l'Enquêteur s'il souhaite interroger un joueur sur l'utilisation de son pouvoir la nuit précédente.</p>
-                          </div>
-                        )}
-
-                        {step.role === 'Polygraphiste' && (
-                          <div className="p-6 bg-slate-950 rounded-2xl border border-slate-800 text-center">
-                            <TrendingUp size={48} className="text-yellow-400 mx-auto mb-4" />
-                            <p className="text-slate-300 font-medium">Le Polygraphiste teste un groupe de 3 agents pour découvrir s'il y a au moins un espion parmi eux.</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-
-              {/* Footer */}
-              <div className="p-6 border-t border-slate-800 bg-slate-950 flex gap-4">
-                <button 
-                  onClick={() => {
-                    if (currentNightStep > 0) setCurrentNightStep(prev => prev - 1);
-                  }}
-                  disabled={currentNightStep === 0}
-                  className="px-6 py-3 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-white rounded-xl font-bold uppercase tracking-wider transition-colors border border-slate-700"
-                >
-                  Précédent
-                </button>
-                
-                {(() => {
-                  const filteredSteps = NIGHT_STEPS.filter(s => {
-                    const roleAlive = players.some(p => p.role === (s.role === 'Espions' ? 'Espion' : s.role) && p.status === 'active');
-                    if (!roleAlive) return false;
-                    if (s.role === 'Agent Gemini') return nightNumber === 1;
-                    if (s.role === 'Agent Double') return nightNumber <= 4;
-                    if (s.role === 'Enquêteur') return nightNumber >= 2;
-                    if (s.role === 'Stratège') return nightNumber % 2 === 1;
-                    return true;
-                  });
-
-                  if (currentNightStep < filteredSteps.length - 1) {
-                    return (
-                      <button 
-                        onClick={() => setCurrentNightStep(prev => prev + 1)}
-                        className="flex-1 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold uppercase tracking-wider transition-colors shadow-lg shadow-indigo-500/20"
-                      >
-                        Étape Suivante
-                      </button>
-                    );
-                  } else {
-                    return (
-                      <button 
-                        onClick={() => {
-                          // Apply Night Results
-                          if (spyTargetId && doctorSavedId !== spyTargetId) {
-                            toggleStatus(spyTargetId, 'eliminated');
-                          }
-                          
-                          // Ghost Logic increment
-                          if (ghostTargetId && !ghostSuccess) {
-                            setGhostRoundsElapsed(prev => prev + 1);
-                          }
-
-                          // Double Agent Logic increment
-                          if (doubleAgentChoice) {
-                            setDoubleAgentRoundsElapsed(prev => prev + 1);
-                          }
-
-                          setPhase('Day');
-                          setIsNightActionModalOpen(false);
-                          setEvent('None');
-                          setTimer(240);
-                          setIsTimerRunning(true);
-                        }}
-                        className="flex-1 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold uppercase tracking-wider transition-colors shadow-lg shadow-emerald-500/20"
-                      >
-                        Terminer la Nuit & Lancer le Jour
-                      </button>
-                    );
-                  }
-                })()}
-              </div>
-            </motion.div>
-          </div>
-        )}
+        <NightActionModal
+          isOpen={isNightActionModalOpen}
+          isAdminMode={isAdminMode}
+          nightNumber={nightNumber}
+          currentNightStep={currentNightStep}
+          setCurrentNightStep={setCurrentNightStep}
+          players={players}
+          geminiTwinId={geminiTwinId}
+          setGeminiTwinId={setGeminiTwinId}
+          doubleAgentChoice={doubleAgentChoice}
+          setDoubleAgentChoice={setDoubleAgentChoice}
+          engineerTargetId={engineerTargetId}
+          setEngineerTargetId={setEngineerTargetId}
+          spyTargetId={spyTargetId}
+          setSpyTargetId={setSpyTargetId}
+          doctorSavedId={doctorSavedId}
+          setDoctorSavedId={setDoctorSavedId}
+          mouchardTargetId={mouchardTargetId}
+          setMouchardTargetId={setMouchardTargetId}
+          ghostTargetId={ghostTargetId}
+          ghostSuccess={ghostSuccess}
+          toggleStatus={toggleStatus}
+          setGhostRoundsElapsed={setGhostRoundsElapsed}
+          setDoubleAgentRoundsElapsed={setDoubleAgentRoundsElapsed}
+          setPhase={setPhase}
+          setIsNightActionModalOpen={setIsNightActionModalOpen}
+          setEvent={setEvent}
+          setTimer={setTimer}
+          setIsTimerRunning={setIsTimerRunning}
+        />
       </AnimatePresence>
 
       {/* Dashboard Modal */}
