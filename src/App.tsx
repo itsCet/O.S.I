@@ -647,7 +647,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 lg:p-8 font-sans overflow-hidden flex flex-col">
+    <div className="min-h-[100dvh] bg-slate-950 text-slate-100 p-2 sm:p-4 lg:p-8 font-sans overflow-x-hidden overflow-y-auto lg:overflow-hidden flex flex-col">
       {/* Night Guide Overlay */}
       <AnimatePresence>
         {phase === 'Night' && isAdminMode && (
@@ -718,8 +718,8 @@ export default function App() {
         )}
       </AnimatePresence>
       {/* Header Section */}
-      <header className="flex flex-col md:flex-row justify-between items-center mb-8 gap-6">
-        <div className="flex items-center gap-4">
+      <header className="flex flex-col xl:flex-row justify-between items-center mb-4 lg:mb-8 gap-4 lg:gap-6">
+        <div className="flex flex-col sm:flex-row items-center sm:items-start xl:items-center gap-4 text-center sm:text-left">
           <div className="w-16 h-16 rounded-2xl flex items-center justify-center overflow-hidden shrink-0 bg-slate-900 border-2 border-slate-700 shadow-[0_0_20px_rgba(0,0,0,0.3)]">
             <img 
               src="/logo osi.png" 
@@ -735,12 +735,12 @@ export default function App() {
             <Eye className="text-white hidden" size={32} />
           </div>
           <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-4xl font-display font-bold tracking-tighter text-white uppercase italic">
+            <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 sm:gap-3">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold tracking-tighter text-white uppercase italic">
                 O.S.I <span className="text-red-500">: Alerte Espions</span>
               </h1>
               {isAdminMode && (
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center justify-center gap-2 mt-2 sm:mt-0">
                   <span className="bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest">
                     Mode MJ
                   </span>
@@ -774,7 +774,7 @@ export default function App() {
                 </div>
               )}
             </div>
-            <p className="text-slate-400 font-mono text-sm tracking-widest uppercase">Organisation Secrète Internationale // Playtest Final</p>
+            <p className="text-slate-400 font-mono text-xs sm:text-sm tracking-widest uppercase mt-1">Organisation Secrète Internationale // Playtest Final</p>
           </div>
         </div>
 
@@ -842,18 +842,18 @@ export default function App() {
       </header>
 
       {/* Main Content Grid */}
-      <main className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6 overflow-hidden">
+      <main className="flex-1 flex flex-col lg:grid lg:grid-cols-4 gap-4 lg:gap-6 overflow-visible lg:overflow-hidden">
         
         {isVoteMode ? (
           <div className="lg:col-span-4 bg-slate-900/50 border border-slate-800 rounded-2xl p-6 flex flex-col overflow-hidden">
             {isVoteRevealPhase && eliminatedByVoteId !== null ? (
-              <div className="flex-1 flex flex-col items-center justify-center py-12">
-                <h2 className="text-2xl text-slate-400 font-mono uppercase tracking-widest mb-4">Joueur Éliminé</h2>
-                <h1 className="text-7xl font-display font-black uppercase italic tracking-widest text-red-500 mb-12 text-center drop-shadow-[0_0_30px_rgba(239,68,68,0.5)]">
+              <div className="flex-1 flex flex-col items-center justify-center py-6 sm:py-12">
+                <h2 className="text-lg sm:text-2xl text-slate-400 font-mono uppercase tracking-widest mb-2 sm:mb-4">Joueur Éliminé</h2>
+                <h1 className="text-4xl sm:text-7xl font-display font-black uppercase italic tracking-widest text-red-500 mb-6 sm:mb-12 text-center drop-shadow-[0_0_30px_rgba(239,68,68,0.5)]">
                   {players.find(p => p.id === eliminatedByVoteId)?.name}
                 </h1>
                 
-                <div className="h-[400px] flex items-center justify-center w-full">
+                <div className="h-[250px] sm:h-[400px] flex items-center justify-center w-full">
                   {isRoleRevealed ? (
                     <motion.div 
                       initial={{ opacity: 0, scale: 0.5, rotateY: 90 }}
@@ -861,8 +861,8 @@ export default function App() {
                       transition={{ type: "spring", duration: 0.8 }}
                       className="flex flex-col items-center"
                     >
-                      <span className="text-2xl text-slate-400 font-mono uppercase tracking-widest mb-6">Son rôle était</span>
-                      <h3 className={`text-6xl font-display font-black uppercase italic tracking-tighter mb-8 ${ROLES_CONFIG[players.find(p => p.id === eliminatedByVoteId)?.role || 'Recrue'].color}`}>
+                      <span className="text-lg sm:text-2xl text-slate-400 font-mono uppercase tracking-widest mb-3 sm:mb-6">Son rôle était</span>
+                      <h3 className={`text-3xl sm:text-6xl font-display font-black uppercase italic tracking-tighter mb-4 sm:mb-8 ${ROLES_CONFIG[players.find(p => p.id === eliminatedByVoteId)?.role || 'Recrue'].color}`}>
                         {players.find(p => p.id === eliminatedByVoteId)?.role}
                       </h3>
                       {(() => {
@@ -872,11 +872,11 @@ export default function App() {
                           <img 
                             src={roleConfig.image} 
                             alt="Role" 
-                            className="w-64 h-auto rounded-2xl border-4 border-slate-700 shadow-2xl"
+                            className="w-40 sm:w-64 h-auto rounded-xl sm:rounded-2xl border-2 sm:border-4 border-slate-700 shadow-2xl"
                             onError={() => handleImageError(roleConfig.image)}
                           />
                         ) : (
-                          <div className="w-64 aspect-[4/5] bg-slate-800 rounded-2xl flex items-center justify-center border-4 border-slate-700">
+                          <div className="w-40 sm:w-64 aspect-[4/5] bg-slate-800 rounded-xl sm:rounded-2xl flex items-center justify-center border-2 sm:border-4 border-slate-700">
                             {React.cloneElement(roleConfig.icon as React.ReactElement, { size: 80, className: "text-slate-600" })}
                           </div>
                         );
@@ -987,7 +987,7 @@ export default function App() {
         ) : (
           <>
             {/* Left Sidebar: Events & Timer */}
-            <div className="lg:col-span-1 flex flex-col gap-6">
+            <div className="lg:col-span-1 flex flex-col gap-4 lg:gap-6">
           {/* Timer Card */}
           <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 flex flex-col items-center gap-4">
             <div className="flex items-center gap-2 text-slate-400 uppercase font-mono text-xs tracking-widest">
@@ -1071,8 +1071,8 @@ export default function App() {
         </div>
 
         {/* Player Grid: Main View */}
-        <div className="lg:col-span-3 bg-slate-900/30 border border-slate-800/50 rounded-3xl p-5 overflow-y-auto">
-          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-4">
+        <div className="lg:col-span-3 bg-slate-900/30 border border-slate-800/50 rounded-3xl p-3 sm:p-5 overflow-y-visible lg:overflow-y-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3 sm:gap-4">
             {(isAdminMode ? players : sortedPlayers).map((player) => (
               <motion.div
                 key={player.id}
@@ -1201,7 +1201,7 @@ export default function App() {
             <motion.div 
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              className="relative w-full max-w-md bg-slate-900 border-2 border-slate-700 rounded-3xl shadow-2xl overflow-hidden flex flex-col items-center text-center p-8"
+              className="relative w-full max-w-md bg-slate-900 border-2 border-slate-700 rounded-3xl shadow-2xl overflow-y-auto max-h-[90dvh] flex flex-col items-center text-center p-6 sm:p-8"
             >
               <AlertTriangle size={64} className="text-amber-500 mb-6" />
               <h2 className="text-3xl font-display font-black uppercase italic tracking-tighter mb-4 text-white">
@@ -1350,11 +1350,11 @@ export default function App() {
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative w-full max-w-5xl max-h-[90vh] bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden"
+              className="relative w-full max-w-5xl max-h-[90dvh] bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden"
             >
               {/* Header */}
-              <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
-                <h2 className="text-xl font-display font-bold uppercase tracking-tight flex items-center gap-3 text-white">
+              <div className="p-4 sm:p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
+                <h2 className="text-lg sm:text-xl font-display font-bold uppercase tracking-tight flex items-center gap-2 sm:gap-3 text-white">
                   <ClipboardList className="text-indigo-400" /> Tableau de Bord MJ
                 </h2>
                 <button onClick={() => setIsDashboardOpen(false)} className="text-slate-400 hover:text-white transition-colors">
@@ -1363,7 +1363,7 @@ export default function App() {
               </div>
 
               {/* Role Summary */}
-              <div className="p-4 bg-slate-950 border-b border-slate-800 flex flex-wrap gap-2">
+              <div className="p-3 sm:p-4 bg-slate-950 border-b border-slate-800 flex flex-wrap gap-2">
                 {Object.entries(
                   players.reduce((acc, p) => {
                     acc[p.role] = (acc[p.role] || 0) + 1;
@@ -1381,8 +1381,8 @@ export default function App() {
               </div>
 
               {/* Body: Player List */}
-              <div className="p-6 overflow-y-auto custom-scrollbar flex-1 bg-slate-900">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="p-4 sm:p-6 overflow-y-auto custom-scrollbar flex-1 bg-slate-900">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                   {players.map(p => (
                     <div key={p.id} className="bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col gap-3 shadow-sm">
                       <div className="flex items-center justify-between">
@@ -1449,10 +1449,10 @@ export default function App() {
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row"
+              className="relative w-full max-w-4xl max-h-[90dvh] bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-y-auto flex flex-col md:flex-row"
             >
               {/* Left Side: Physical Card Design */}
-              <div className="w-full md:w-1/2 bg-slate-950 p-6 flex items-center justify-center border-b md:border-b-0 md:border-r border-slate-800">
+              <div className="w-full md:w-1/2 bg-slate-950 p-4 sm:p-6 flex items-center justify-center border-b md:border-b-0 md:border-r border-slate-800 shrink-0">
                 {(() => {
                   const adminPlayer = players.find(p => p.id === selectedPlayerId);
                   const adminRoleConfig = ROLES_CONFIG[adminPlayer?.role || 'Recrue'];
@@ -1514,14 +1514,14 @@ export default function App() {
 
               {/* Right Side: Admin Controls */}
               <div className="w-full md:w-1/2 flex flex-col">
-                <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
-                  <h2 className="text-xl font-display font-bold uppercase tracking-tight">Configuration Agent {selectedPlayerId}</h2>
+                <div className="p-4 sm:p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
+                  <h2 className="text-lg sm:text-xl font-display font-bold uppercase tracking-tight">Configuration Agent {selectedPlayerId}</h2>
                   <button onClick={() => setIsAdminOpen(false)} className="text-slate-400 hover:text-white transition-colors">
                     <UserX size={24} />
                   </button>
                 </div>
 
-                <div className="p-6 flex-1 overflow-y-auto custom-scrollbar">
+                <div className="p-4 sm:p-6 flex-1 overflow-y-auto custom-scrollbar">
                   <div className="space-y-6">
                     {/* Name Section */}
                     <div>
