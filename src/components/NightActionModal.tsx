@@ -37,6 +37,7 @@ interface NightActionModalProps {
   mouchardTargetId: number | null;
   setMouchardTargetId: (id: number | null) => void;
   ghostTargetId: number | null;
+  setGhostTargetId: (id: number | null) => void;
   ghostSuccess: boolean;
   toggleStatus: (id: number, status: 'active' | 'eliminated') => void;
   setGhostRoundsElapsed: React.Dispatch<React.SetStateAction<number>>;
@@ -75,6 +76,7 @@ export const NightActionModal: React.FC<NightActionModalProps> = ({
   mouchardTargetId,
   setMouchardTargetId,
   ghostTargetId,
+  setGhostTargetId,
   ghostSuccess,
   toggleStatus,
   setGhostRoundsElapsed,
@@ -92,12 +94,13 @@ export const NightActionModal: React.FC<NightActionModalProps> = ({
   showInvestigatorResult,
   setShowInvestigatorResult,
 }) => {
-  if (!isOpen || !isAdminMode) return null;
+  if (!isAdminMode) return null;
 
   const filteredSteps = NIGHT_STEPS.filter(s => {
     const roleAlive = players.some(p => p.role === (s.role === 'Espions' ? 'Espion' : s.role) && p.status === 'active');
     if (!roleAlive) return false;
     if (s.role === 'Agent Gemini') return nightNumber === 1;
+    if (s.role === 'Agent Fantôme') return nightNumber === 1;
     if (s.role === 'Agent Double') return nightNumber <= 4;
     if (s.role === 'Enquêteur') return nightNumber >= 2;
     if (s.role === 'Stratège') return nightNumber % 2 === 1;
@@ -109,12 +112,14 @@ export const NightActionModal: React.FC<NightActionModalProps> = ({
   return (
     <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
       <motion.div 
+        key="night-action-backdrop"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="absolute inset-0 bg-slate-950/95 backdrop-blur-xl"
       />
       <motion.div 
+        key="night-action-content"
         initial={{ scale: 0.9, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -323,6 +328,32 @@ export const NightActionModal: React.FC<NightActionModalProps> = ({
                   <div className="p-6 bg-slate-950 rounded-2xl border border-slate-800 text-center">
                     <TrendingUp size={48} className="text-yellow-400 mx-auto mb-4" />
                     <p className="text-slate-300 font-medium">Le Polygraphiste teste un groupe de 3 agents pour découvrir s'il y a au moins un espion parmi eux.</p>
+                  </div>
+                )}
+
+                {step.role === 'Agent Fantôme' && (
+                  <div className="space-y-6">
+                    <div className="p-4 bg-slate-800/50 rounded-2xl border border-slate-700">
+                      <p className="text-slate-300 text-sm leading-relaxed">
+                        L'Agent Fantôme doit choisir une cible à hantée. Si cette cible est toujours en vie à la 4ème journée, l'Agent Fantôme meurt.
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {players.filter(p => p.status === 'active' && p.role !== 'Agent Fantôme').map(player => (
+                        <button
+                          key={player.id}
+                          onClick={() => setGhostTargetId(player.id)}
+                          className={`p-4 rounded-2xl border-2 transition-all text-left space-y-2 ${
+                            ghostTargetId === player.id
+                              ? 'border-slate-400 bg-slate-400/10 shadow-lg shadow-slate-400/10'
+                              : 'border-slate-800 bg-slate-900/50 hover:border-slate-700'
+                          }`}
+                        >
+                          <div className="text-white font-bold truncate">{player.name}</div>
+                          <div className="text-[10px] text-slate-500 font-mono uppercase">Sujet Potentiel</div>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
