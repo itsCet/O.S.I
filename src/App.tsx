@@ -159,6 +159,7 @@ const INITIAL_PLAYERS: Player[] = generatePlayers(8);
 
 export const NIGHT_STEPS = [
   { role: 'Agent Gemini', action: 'Choisit son jumeau', condition: '1ère nuit uniquement' },
+  { role: 'Agent Fantôme', action: 'Choisit sa cible à hanter', condition: '1ère nuit uniquement' },
   { role: 'Agent Double', action: 'Choix du camp (4 nuits max)', condition: 'Toujours' },
   { role: 'Polygraphiste', action: 'Teste un groupe de 3 agents', condition: 'Toujours' },
   { role: 'Ingénieur', action: 'Pose un dispositif de surveillance', condition: 'Toujours' },
@@ -480,6 +481,18 @@ export default function App() {
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
+
+  // Agent Fantôme Death Logic
+  useEffect(() => {
+    if (isAdminMode && nightNumber === 4 && phase === 'Day') {
+      const ghostAgent = players.find(p => p.role === 'Agent Fantôme' && p.status === 'active');
+      const target = players.find(p => p.id === ghostTargetId);
+      
+      if (ghostAgent && target && target.status === 'active' && !ghostSuccess) {
+        toggleStatus(ghostAgent.id, 'eliminated');
+      }
+    }
+  }, [nightNumber, phase, ghostTargetId, ghostSuccess, isAdminMode, players]);
 
   const handlePhaseChange = () => {
     if (!isAdminMode) return;
@@ -1448,43 +1461,46 @@ export default function App() {
 
       {/* Night Action Modal */}
       <AnimatePresence>
-        <NightActionModal
-          isOpen={isNightActionModalOpen}
-          isAdminMode={isAdminMode}
-          nightNumber={nightNumber}
-          currentNightStep={currentNightStep}
-          setCurrentNightStep={setCurrentNightStep}
-          players={players}
-          geminiTwinId={geminiTwinId}
-          setGeminiTwinId={setGeminiTwinId}
-          doubleAgentChoice={doubleAgentChoice}
-          setDoubleAgentChoice={setDoubleAgentChoice}
-          engineerTargetId={engineerTargetId}
-          setEngineerTargetId={setEngineerTargetId}
-          spyTargetId={spyTargetId}
-          setSpyTargetId={setSpyTargetId}
-          doctorSavedId={doctorSavedId}
-          setDoctorSavedId={setDoctorSavedId}
-          mouchardTargetId={mouchardTargetId}
-          setMouchardTargetId={setMouchardTargetId}
-          ghostTargetId={ghostTargetId}
-          ghostSuccess={ghostSuccess}
-          toggleStatus={toggleStatus}
-          setGhostRoundsElapsed={setGhostRoundsElapsed}
-          setDoubleAgentRoundsElapsed={setDoubleAgentRoundsElapsed}
-          setPhase={setPhase}
-          setIsNightActionModalOpen={setIsNightActionModalOpen}
-          setEvent={setEvent}
-          setTimer={setTimer}
-          setIsTimerRunning={setIsTimerRunning}
-          setNightEliminatedPlayerId={setNightEliminatedPlayerId}
-          setIsNightRevealPhase={setIsNightRevealPhase}
-          setNightRevealStep={setNightRevealStep}
-          investigatorTargetId={investigatorTargetId}
-          setInvestigatorTargetId={setInvestigatorTargetId}
-          showInvestigatorResult={showInvestigatorResult}
-          setShowInvestigatorResult={setShowInvestigatorResult}
-        />
+        {isNightActionModalOpen && (
+          <NightActionModal
+            isOpen={isNightActionModalOpen}
+            isAdminMode={isAdminMode}
+            nightNumber={nightNumber}
+            currentNightStep={currentNightStep}
+            setCurrentNightStep={setCurrentNightStep}
+            players={players}
+            geminiTwinId={geminiTwinId}
+            setGeminiTwinId={setGeminiTwinId}
+            doubleAgentChoice={doubleAgentChoice}
+            setDoubleAgentChoice={setDoubleAgentChoice}
+            engineerTargetId={engineerTargetId}
+            setEngineerTargetId={setEngineerTargetId}
+            spyTargetId={spyTargetId}
+            setSpyTargetId={setSpyTargetId}
+            doctorSavedId={doctorSavedId}
+            setDoctorSavedId={setDoctorSavedId}
+            mouchardTargetId={mouchardTargetId}
+            setMouchardTargetId={setMouchardTargetId}
+            ghostTargetId={ghostTargetId}
+            setGhostTargetId={setGhostTargetId}
+            ghostSuccess={ghostSuccess}
+            toggleStatus={toggleStatus}
+            setGhostRoundsElapsed={setGhostRoundsElapsed}
+            setDoubleAgentRoundsElapsed={setDoubleAgentRoundsElapsed}
+            setPhase={setPhase}
+            setIsNightActionModalOpen={setIsNightActionModalOpen}
+            setEvent={setEvent}
+            setTimer={setTimer}
+            setIsTimerRunning={setIsTimerRunning}
+            setNightEliminatedPlayerId={setNightEliminatedPlayerId}
+            setIsNightRevealPhase={setIsNightRevealPhase}
+            setNightRevealStep={setNightRevealStep}
+            investigatorTargetId={investigatorTargetId}
+            setInvestigatorTargetId={setInvestigatorTargetId}
+            showInvestigatorResult={showInvestigatorResult}
+            setShowInvestigatorResult={setShowInvestigatorResult}
+          />
+        )}
       </AnimatePresence>
 
       {/* Investigator Public Result */}
