@@ -271,6 +271,7 @@ export default function App() {
           setSpyTargetId(data.spyTargetId !== undefined ? data.spyTargetId : null);
           setDoctorSavedId(data.doctorSavedId !== undefined ? data.doctorSavedId : null);
           setNightEliminatedPlayerId(data.nightEliminatedPlayerId !== undefined ? data.nightEliminatedPlayerId : null);
+          setGhostEliminatedPlayerId(data.ghostEliminatedPlayerId !== undefined ? data.ghostEliminatedPlayerId : null);
           setIsNightRevealPhase(data.isNightRevealPhase || false);
           setNightRevealStep(data.nightRevealStep !== undefined ? data.nightRevealStep : 0);
           setGhostTargetId(data.ghostTargetId !== undefined ? data.ghostTargetId : null);
@@ -308,6 +309,7 @@ export default function App() {
           spyTargetId: null,
           doctorSavedId: null,
           nightEliminatedPlayerId: null,
+          ghostEliminatedPlayerId: null,
           isNightRevealPhase: false,
           nightRevealStep: 0,
           ghostTargetId: null,
@@ -344,7 +346,7 @@ export default function App() {
     doctorSavedId, ghostTargetId, ghostRoundsElapsed, ghostSuccess, showGhostSuccessModal,
     mouchardTargetId, isVoteMode, votes, voteTieMessage, eliminatedByVoteId,
     isVoteRevealPhase, isRoleRevealed, isHackerPowerActive, doubleAgentRoundsElapsed,
-    doubleAgentChoice, nightEliminatedPlayerId, isNightRevealPhase, nightRevealStep,
+    doubleAgentChoice, nightEliminatedPlayerId, ghostEliminatedPlayerId, isNightRevealPhase, nightRevealStep,
     investigatorTargetId, showInvestigatorResult
   ]);
 
@@ -368,6 +370,7 @@ export default function App() {
           spyTargetId,
           doctorSavedId,
           nightEliminatedPlayerId,
+          ghostEliminatedPlayerId,
           isNightRevealPhase,
           nightRevealStep,
           ghostTargetId,
@@ -399,7 +402,7 @@ export default function App() {
     ghostSuccess, showGhostSuccessModal, mouchardTargetId, isVoteMode, votes, 
     voteTieMessage, eliminatedByVoteId, isVoteRevealPhase, isRoleRevealed, 
     isHackerPowerActive, doubleAgentRoundsElapsed, doubleAgentChoice,
-    nightEliminatedPlayerId, isNightRevealPhase, nightRevealStep,
+    nightEliminatedPlayerId, ghostEliminatedPlayerId, isNightRevealPhase, nightRevealStep,
     investigatorTargetId, showInvestigatorResult
   ]);
 
@@ -437,6 +440,7 @@ export default function App() {
     setInvestigatorTargetId(null);
     setShowInvestigatorResult(false);
     setNightEliminatedPlayerId(null);
+    setGhostEliminatedPlayerId(null);
     setIsNightRevealPhase(false);
     setNightRevealStep(0);
     setDismissedGameOver(false);
