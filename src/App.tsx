@@ -206,6 +206,10 @@ export default function App() {
   // Stratège Logic
   const [mouchardTargetId, setMouchardTargetId] = useState<number | null>(null);
 
+  // Enquêteur Logic
+  const [investigatorTargetId, setInvestigatorTargetId] = useState<number | null>(null);
+  const [showInvestigatorResult, setShowInvestigatorResult] = useState(false);
+
   // Vote Logic
   const [isVoteMode, setIsVoteMode] = useState(false);
   const [votes, setVotes] = useState<Record<number, number>>({});
@@ -270,6 +274,8 @@ export default function App() {
           setGhostSuccess(data.ghostSuccess || false);
           setShowGhostSuccessModal(data.showGhostSuccessModal || false);
           setMouchardTargetId(data.mouchardTargetId !== undefined ? data.mouchardTargetId : null);
+          setInvestigatorTargetId(data.investigatorTargetId !== undefined ? data.investigatorTargetId : null);
+          setShowInvestigatorResult(data.showInvestigatorResult || false);
           setIsVoteMode(data.isVoteMode || false);
           setVotes(data.votes || {});
           setVoteTieMessage(data.voteTieMessage || null);
@@ -304,6 +310,8 @@ export default function App() {
           ghostSuccess: false,
           showGhostSuccessModal: false,
           mouchardTargetId: null,
+          investigatorTargetId: null,
+          showInvestigatorResult: false,
           isVoteMode: false,
           votes: {},
           voteTieMessage: null,
@@ -331,7 +339,8 @@ export default function App() {
     doctorSavedId, ghostTargetId, ghostRoundsElapsed, ghostSuccess, showGhostSuccessModal,
     mouchardTargetId, isVoteMode, votes, voteTieMessage, eliminatedByVoteId,
     isVoteRevealPhase, isRoleRevealed, isHackerPowerActive, doubleAgentRoundsElapsed,
-    doubleAgentChoice, nightEliminatedPlayerId, isNightRevealPhase, nightRevealStep
+    doubleAgentChoice, nightEliminatedPlayerId, isNightRevealPhase, nightRevealStep,
+    investigatorTargetId, showInvestigatorResult
   ]);
 
   // Sync to Firebase with debounce
@@ -361,6 +370,8 @@ export default function App() {
           ghostSuccess,
           showGhostSuccessModal,
           mouchardTargetId,
+          investigatorTargetId,
+          showInvestigatorResult,
           isVoteMode,
           votes,
           voteTieMessage,
@@ -383,7 +394,8 @@ export default function App() {
     ghostSuccess, showGhostSuccessModal, mouchardTargetId, isVoteMode, votes, 
     voteTieMessage, eliminatedByVoteId, isVoteRevealPhase, isRoleRevealed, 
     isHackerPowerActive, doubleAgentRoundsElapsed, doubleAgentChoice,
-    nightEliminatedPlayerId, isNightRevealPhase, nightRevealStep
+    nightEliminatedPlayerId, isNightRevealPhase, nightRevealStep,
+    investigatorTargetId, showInvestigatorResult
   ]);
 
   const confirmResetGame = (count?: number) => {
@@ -417,6 +429,8 @@ export default function App() {
     setIsHackerPowerActive(false);
     setDoubleAgentRoundsElapsed(0);
     setDoubleAgentChoice(null);
+    setInvestigatorTargetId(null);
+    setShowInvestigatorResult(false);
     setNightEliminatedPlayerId(null);
     setIsNightRevealPhase(false);
     setNightRevealStep(0);
@@ -463,6 +477,8 @@ export default function App() {
       setDoctorSavedId(null);
       // Engineer target might persist or change, usually changes each night
       setEngineerTargetId(null);
+      setInvestigatorTargetId(null);
+      setShowInvestigatorResult(false);
     }
     setPhase(newPhase);
   };
@@ -1448,7 +1464,62 @@ export default function App() {
           setNightEliminatedPlayerId={setNightEliminatedPlayerId}
           setIsNightRevealPhase={setIsNightRevealPhase}
           setNightRevealStep={setNightRevealStep}
+          investigatorTargetId={investigatorTargetId}
+          setInvestigatorTargetId={setInvestigatorTargetId}
+          showInvestigatorResult={showInvestigatorResult}
+          setShowInvestigatorResult={setShowInvestigatorResult}
         />
+      </AnimatePresence>
+
+      {/* Investigator Public Result */}
+      <AnimatePresence>
+        {showInvestigatorResult && investigatorTargetId && (
+          <motion.div
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] w-full max-w-md px-4"
+          >
+            <div className="bg-slate-900/90 backdrop-blur-xl border-2 border-cyan-500 rounded-3xl shadow-2xl shadow-cyan-500/20 overflow-hidden">
+              <div className="bg-cyan-600/20 p-4 border-b border-cyan-500/30 flex items-center justify-center gap-3">
+                <Search className="text-cyan-400" size={24} />
+                <h3 className="text-xl font-display font-bold text-white uppercase tracking-tighter italic">
+                  Enquête en cours
+                </h3>
+              </div>
+              <div className="p-6 text-center space-y-4">
+                <div className="space-y-1">
+                  <p className="text-slate-400 text-[10px] uppercase font-mono tracking-widest">Sujet Interrogé</p>
+                  <p className="text-3xl font-black text-white uppercase tracking-tight">
+                    {players.find(p => p.id === investigatorTargetId)?.name}
+                  </p>
+                </div>
+                
+                <div className="py-4 border-y border-slate-800">
+                  <p className="text-slate-500 text-[10px] uppercase font-mono mb-2">Statut d'activité nocturne</p>
+                  {(() => {
+                    const target = players.find(p => p.id === investigatorTargetId);
+                    const isActive = target && [
+                      'Espion', 'Ingénieur', 'Enquêteur', 'Médecin', 
+                      'Agent Gemini', 'Agent Double', 'Stratège', 
+                      'Polygraphiste', 'Agent Fantôme'
+                    ].includes(target.role);
+                    
+                    return (
+                      <div className={`text-4xl font-display font-black uppercase tracking-tighter ${isActive ? 'text-emerald-400' : 'text-slate-400'}`}>
+                        {isActive ? 'ACTIF' : 'INACTIF'}
+                      </div>
+                    );
+                  })()}
+                </div>
+                
+                <p className="text-slate-500 text-[10px] italic">
+                  Rapport généré par l'unité d'investigation
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       {/* Night Revelation Modal */}
