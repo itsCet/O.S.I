@@ -49,6 +49,10 @@ interface NightActionModalProps {
   setNightEliminatedPlayerId: (id: number | null) => void;
   setIsNightRevealPhase: (open: boolean) => void;
   setNightRevealStep: (step: number) => void;
+  investigatorTargetId: number | null;
+  setInvestigatorTargetId: (id: number | null) => void;
+  showInvestigatorResult: boolean;
+  setShowInvestigatorResult: (show: boolean) => void;
 }
 
 export const NightActionModal: React.FC<NightActionModalProps> = ({
@@ -83,6 +87,10 @@ export const NightActionModal: React.FC<NightActionModalProps> = ({
   setNightEliminatedPlayerId,
   setIsNightRevealPhase,
   setNightRevealStep,
+  investigatorTargetId,
+  setInvestigatorTargetId,
+  showInvestigatorResult,
+  setShowInvestigatorResult,
 }) => {
   if (!isOpen || !isAdminMode) return null;
 
@@ -256,9 +264,58 @@ export const NightActionModal: React.FC<NightActionModalProps> = ({
                 )}
 
                 {step.role === 'Enquêteur' && (
-                  <div className="p-6 bg-slate-950 rounded-2xl border border-slate-800 text-center">
-                    <Search size={48} className="text-cyan-400 mx-auto mb-4" />
-                    <p className="text-slate-300 font-medium">Demandez à l'Enquêteur s'il souhaite interroger un joueur sur l'utilisation de son pouvoir la nuit précédente.</p>
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {players.filter(p => p.status === 'active').map(p => (
+                        <button
+                          key={p.id}
+                          onClick={() => {
+                            setInvestigatorTargetId(p.id);
+                            setShowInvestigatorResult(false);
+                          }}
+                          className={`p-3 rounded-xl border text-sm font-bold transition-all ${investigatorTargetId === p.id ? 'bg-cyan-600 border-cyan-400 text-white shadow-lg shadow-cyan-500/20' : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500'}`}
+                        >
+                          {p.name}
+                        </button>
+                      ))}
+                    </div>
+                    
+                    {investigatorTargetId && (
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="p-6 bg-slate-950 rounded-2xl border border-slate-800 space-y-4"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-400 text-sm uppercase font-mono">Cible de l'enquête</span>
+                          <span className="text-white font-bold">{players.find(p => p.id === investigatorTargetId)?.name}</span>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setShowInvestigatorResult(true)}
+                            disabled={showInvestigatorResult}
+                            className={`flex-1 py-4 rounded-xl font-bold uppercase tracking-widest transition-all ${showInvestigatorResult ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/20'}`}
+                          >
+                            {showInvestigatorResult ? 'Résultat Diffusé' : 'Diffuser'}
+                          </button>
+                          {showInvestigatorResult && (
+                            <button
+                              onClick={() => setShowInvestigatorResult(false)}
+                              className="px-6 py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold uppercase tracking-widest transition-all border border-slate-700"
+                            >
+                              Masquer
+                            </button>
+                          )}
+                        </div>
+                        
+                        {showInvestigatorResult && (
+                          <p className="text-center text-xs text-indigo-400 font-mono animate-pulse">
+                            Affichage en cours sur l'écran public...
+                          </p>
+                        )}
+                      </motion.div>
+                    )}
                   </div>
                 )}
 
