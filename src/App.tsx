@@ -1558,9 +1558,9 @@ export default function App() {
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden"
+              className="relative w-full max-w-lg max-h-[90vh] bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden"
             >
-              <div className="p-8 text-center space-y-8">
+              <div className="p-6 sm:p-8 text-center space-y-8 overflow-y-auto custom-scrollbar flex-1">
                 <div className="space-y-2">
                   <h2 className="text-3xl font-display font-bold uppercase tracking-tighter text-white italic">
                     Rapport de Mission
