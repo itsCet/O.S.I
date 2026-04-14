@@ -118,7 +118,7 @@ export const NightActionModal: React.FC<NightActionModalProps> = ({
         initial={{ scale: 0.9, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.9, opacity: 0, y: 20 }}
-        className="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden"
+        className="relative w-full max-w-2xl max-h-[90vh] bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden"
       >
         {/* Header */}
         <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-indigo-600/10">
@@ -138,7 +138,7 @@ export const NightActionModal: React.FC<NightActionModalProps> = ({
         </div>
 
         {/* Step Content */}
-        <div className="p-8 flex-1 overflow-y-auto custom-scrollbar">
+        <div className="p-4 sm:p-8 flex-1 overflow-y-auto custom-scrollbar">
           {!step ? (
             <div className="text-center text-slate-400">Fin des étapes.</div>
           ) : (
