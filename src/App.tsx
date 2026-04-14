@@ -195,6 +195,7 @@ export default function App() {
   
   // Night Revelation Logic
   const [nightEliminatedPlayerId, setNightEliminatedPlayerId] = useState<number | null>(null);
+  const [ghostEliminatedPlayerId, setGhostEliminatedPlayerId] = useState<number | null>(null);
   const [isNightRevealPhase, setIsNightRevealPhase] = useState(false);
   const [nightRevealStep, setNightRevealStep] = useState(0); // 0: hidden, 1: name, 2: role
 
@@ -481,18 +482,6 @@ export default function App() {
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
-
-  // Agent Fantôme Death Logic
-  useEffect(() => {
-    if (isAdminMode && nightNumber === 4 && phase === 'Day') {
-      const ghostAgent = players.find(p => p.role === 'Agent Fantôme' && p.status === 'active');
-      const target = players.find(p => p.id === ghostTargetId);
-      
-      if (ghostAgent && target && target.status === 'active' && !ghostSuccess) {
-        toggleStatus(ghostAgent.id, 'eliminated');
-      }
-    }
-  }, [nightNumber, phase, ghostTargetId, ghostSuccess, isAdminMode, players]);
 
   const handlePhaseChange = () => {
     if (!isAdminMode) return;
@@ -853,8 +842,8 @@ export default function App() {
         <div className="flex flex-col sm:flex-row items-center sm:items-start xl:items-center gap-4 text-center sm:text-left">
           <div className="w-16 h-16 rounded-2xl flex items-center justify-center overflow-hidden shrink-0 bg-slate-900 border-2 border-slate-700 shadow-[0_0_20px_rgba(0,0,0,0.3)]">
             <img 
-              src="/logo_osi.png" 
-              alt="Logo osi" 
+              src="/logo osi.png" 
+              alt="OSI Logo" 
               className="w-full h-full object-cover"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
@@ -1495,6 +1484,8 @@ export default function App() {
             setNightEliminatedPlayerId={setNightEliminatedPlayerId}
             setIsNightRevealPhase={setIsNightRevealPhase}
             setNightRevealStep={setNightRevealStep}
+            ghostEliminatedPlayerId={ghostEliminatedPlayerId}
+            setGhostEliminatedPlayerId={setGhostEliminatedPlayerId}
             investigatorTargetId={investigatorTargetId}
             setInvestigatorTargetId={setInvestigatorTargetId}
             showInvestigatorResult={showInvestigatorResult}
@@ -1587,76 +1578,121 @@ export default function App() {
                 </div>
 
                 <div className="py-12 flex flex-col items-center justify-center min-h-[300px] space-y-6">
-                  {nightEliminatedPlayerId === null ? (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.5 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="space-y-4"
-                    >
-                      <div className="w-24 h-24 bg-emerald-500/20 rounded-full flex items-center justify-center border-2 border-emerald-500 mx-auto">
-                        <Shield size={48} className="text-emerald-400" />
-                      </div>
-                      <p className="text-2xl font-bold text-emerald-400 uppercase tracking-tight">
-                        Aucune victime à déplorer
-                      </p>
-                      <p className="text-slate-400 text-sm">
-                        Le système de défense a tenu bon cette nuit.
-                      </p>
-                    </motion.div>
-                  ) : (() => {
-                    const eliminatedPlayer = players.find(p => p.id === nightEliminatedPlayerId);
-                    if (!eliminatedPlayer) return (
-                      <div className="text-slate-500 italic">Données de mission corrompues...</div>
-                    );
+                  {/* Phase 1: Spy Victim (Steps 0-2) */}
+                  {nightRevealStep <= 2 && (
+                    <>
+                      {nightEliminatedPlayerId === null ? (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.5 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="space-y-4"
+                        >
+                          <div className="w-24 h-24 bg-emerald-500/20 rounded-full flex items-center justify-center border-2 border-emerald-500 mx-auto">
+                            <Shield size={48} className="text-emerald-400" />
+                          </div>
+                          <p className="text-2xl font-bold text-emerald-400 uppercase tracking-tight">
+                            Aucune victime à déplorer
+                          </p>
+                          <p className="text-slate-400 text-sm">
+                            Le système de défense a tenu bon cette nuit.
+                          </p>
+                        </motion.div>
+                      ) : (() => {
+                        const eliminatedPlayer = players.find(p => p.id === nightEliminatedPlayerId);
+                        if (!eliminatedPlayer) return null;
+
+                        return (
+                          <>
+                            {nightRevealStep >= 1 ? (
+                              <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="space-y-4"
+                              >
+                                <div className="w-24 h-24 bg-red-500/20 rounded-full flex items-center justify-center border-2 border-red-500 mx-auto">
+                                  <Skull size={48} className="text-red-400" />
+                                </div>
+                                <h3 className="text-4xl font-display font-black text-white uppercase tracking-tighter">
+                                  {eliminatedPlayer.name}
+                                </h3>
+                                <p className="text-red-500 font-bold uppercase tracking-widest text-sm">
+                                  Éliminé(e) au cours de la nuit
+                                </p>
+                              </motion.div>
+                            ) : (
+                              <div className="w-24 h-24 bg-slate-800 rounded-full flex items-center justify-center border-2 border-slate-700 animate-pulse">
+                                <HelpCircle size={48} className="text-slate-600" />
+                              </div>
+                            )}
+
+                            {nightRevealStep >= 2 && (
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="p-4 bg-slate-800/50 rounded-2xl border border-slate-700 w-full max-w-xs"
+                              >
+                                <p className="text-slate-500 text-[10px] uppercase font-mono mb-2">Identité Confirmée</p>
+                                <div className="flex items-center justify-center gap-3">
+                                  <div className={ROLES_CONFIG[eliminatedPlayer.role as RoleType]?.color}>
+                                    {ROLES_CONFIG[eliminatedPlayer.role as RoleType]?.icon}
+                                  </div>
+                                  <span className={`text-xl font-bold ${ROLES_CONFIG[eliminatedPlayer.role as RoleType]?.color}`}>
+                                    {eliminatedPlayer.role}
+                                  </span>
+                                </div>
+                              </motion.div>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </>
+                  )}
+
+                  {/* Phase 2: Ghost Death (Steps 3-4) */}
+                  {nightRevealStep >= 3 && ghostEliminatedPlayerId !== null && (() => {
+                    const ghostPlayer = players.find(p => p.id === ghostEliminatedPlayerId);
+                    if (!ghostPlayer) return null;
 
                     return (
-                      <>
-                        {nightRevealStep >= 1 ? (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="space-y-6 w-full"
+                      >
+                        <div className="w-24 h-24 bg-slate-500/20 rounded-full flex items-center justify-center border-2 border-slate-400 mx-auto">
+                          <Ghost size={48} className="text-slate-300" />
+                        </div>
+                        <div className="space-y-2">
+                          <h3 className="text-4xl font-display font-black text-white uppercase tracking-tighter">
+                            {ghostPlayer.name}
+                          </h3>
+                          <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">
+                            L'Agent Fantôme a échoué sa mission
+                          </p>
+                        </div>
+                        
+                        {nightRevealStep >= 4 && (
                           <motion.div
-                            initial={{ opacity: 0, y: 20 }}
+                            initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="space-y-4"
+                            className="p-4 bg-slate-800/50 rounded-2xl border border-slate-700 mx-auto w-full max-w-xs"
                           >
-                            <div className="w-24 h-24 bg-red-500/20 rounded-full flex items-center justify-center border-2 border-red-500 mx-auto">
-                              <Skull size={48} className="text-red-400" />
-                            </div>
-                            <h3 className="text-4xl font-display font-black text-white uppercase tracking-tighter">
-                              {eliminatedPlayer.name}
-                            </h3>
-                            <p className="text-red-500 font-bold uppercase tracking-widest text-sm">
-                              Éliminé(e) au cours de la nuit
-                            </p>
-                          </motion.div>
-                        ) : (
-                          <div className="w-24 h-24 bg-slate-800 rounded-full flex items-center justify-center border-2 border-slate-700 animate-pulse">
-                            <HelpCircle size={48} className="text-slate-600" />
-                          </div>
-                        )}
-
-                        {nightRevealStep >= 2 && (
-                          <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="p-4 bg-slate-800/50 rounded-2xl border border-slate-700 w-full max-w-xs"
-                          >
-                            <p className="text-slate-500 text-[10px] uppercase font-mono mb-2">Identité Confirmée</p>
+                            <p className="text-slate-500 text-[10px] uppercase font-mono mb-2">Verdict Final</p>
                             <div className="flex items-center justify-center gap-3">
-                              <div className={ROLES_CONFIG[eliminatedPlayer.role as RoleType]?.color}>
-                                {ROLES_CONFIG[eliminatedPlayer.role as RoleType]?.icon}
-                              </div>
-                              <span className={`text-xl font-bold ${ROLES_CONFIG[eliminatedPlayer.role as RoleType]?.color}`}>
-                                {eliminatedPlayer.role}
-                              </span>
+                              <Ghost size={24} className="text-slate-400" />
+                              <span className="text-xl font-bold text-slate-400 uppercase tracking-tight">Agent Fantôme</span>
                             </div>
+                            <p className="mt-2 text-[10px] text-red-500 font-mono uppercase">Élimination par Malédiction</p>
                           </motion.div>
                         )}
-                      </>
+                      </motion.div>
                     );
                   })()}
                 </div>
 
                 {isAdminMode && (
                   <div className="flex flex-col gap-3">
+                    {/* Spy Victim Buttons */}
                     {nightEliminatedPlayerId !== null && nightRevealStep < 1 && (
                       <button
                         onClick={() => setNightRevealStep(1)}
@@ -1673,16 +1709,46 @@ export default function App() {
                         Révéler le Rôle
                       </button>
                     )}
-                    {(nightEliminatedPlayerId === null || nightRevealStep >= 2) && (
+
+                    {/* Transition to Ghost */}
+                    {ghostEliminatedPlayerId !== null && (
+                      (nightEliminatedPlayerId === null && nightRevealStep === 0) || 
+                      (nightEliminatedPlayerId !== null && nightRevealStep === 2)
+                    ) && (
+                      <button
+                        onClick={() => setNightRevealStep(3)}
+                        className="w-full py-4 bg-slate-700 hover:bg-slate-600 text-white rounded-2xl font-bold uppercase tracking-wider transition-all border border-slate-600"
+                      >
+                        Suite du Rapport
+                      </button>
+                    )}
+
+                    {/* Ghost Buttons */}
+                    {ghostEliminatedPlayerId !== null && nightRevealStep === 3 && (
+                      <button
+                        onClick={() => setNightRevealStep(4)}
+                        className="w-full py-4 bg-slate-600 hover:bg-slate-500 text-white rounded-2xl font-bold uppercase tracking-wider transition-all shadow-lg shadow-slate-500/20"
+                      >
+                        Révéler le Rôle
+                      </button>
+                    )}
+
+                    {/* End Reveal Button */}
+                    {((ghostEliminatedPlayerId === null && (nightEliminatedPlayerId === null || nightRevealStep >= 2)) || 
+                      (ghostEliminatedPlayerId !== null && nightRevealStep >= 4)) && (
                       <button
                         onClick={() => {
                           if (nightEliminatedPlayerId !== null) {
                             toggleStatus(nightEliminatedPlayerId, 'eliminated');
                           }
+                          if (ghostEliminatedPlayerId !== null) {
+                            toggleStatus(ghostEliminatedPlayerId, 'eliminated');
+                          }
                           setPhase('Day');
                           setIsNightRevealPhase(false);
                           setNightRevealStep(0);
                           setNightEliminatedPlayerId(null);
+                          setGhostEliminatedPlayerId(null);
                           setInvestigatorTargetId(null);
                           setShowInvestigatorResult(false);
                           setEvent('None');
