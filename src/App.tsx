@@ -258,18 +258,18 @@ export default function App() {
           setCurrentNightStep(data.currentNightStep);
           setNightNumber(data.nightNumber || 1);
           setIsNightActionModalOpen(data.isNightActionModalOpen || false);
-          setGeminiTwinId(data.geminiTwinId || null);
-          setEngineerTargetId(data.engineerTargetId || null);
-          setSpyTargetId(data.spyTargetId || null);
-          setDoctorSavedId(data.doctorSavedId || null);
-          setNightEliminatedPlayerId(data.nightEliminatedPlayerId || null);
+          setGeminiTwinId(data.geminiTwinId !== undefined ? data.geminiTwinId : null);
+          setEngineerTargetId(data.engineerTargetId !== undefined ? data.engineerTargetId : null);
+          setSpyTargetId(data.spyTargetId !== undefined ? data.spyTargetId : null);
+          setDoctorSavedId(data.doctorSavedId !== undefined ? data.doctorSavedId : null);
+          setNightEliminatedPlayerId(data.nightEliminatedPlayerId !== undefined ? data.nightEliminatedPlayerId : null);
           setIsNightRevealPhase(data.isNightRevealPhase || false);
-          setNightRevealStep(data.nightRevealStep || 0);
-          setGhostTargetId(data.ghostTargetId || null);
+          setNightRevealStep(data.nightRevealStep !== undefined ? data.nightRevealStep : 0);
+          setGhostTargetId(data.ghostTargetId !== undefined ? data.ghostTargetId : null);
           setGhostRoundsElapsed(data.ghostRoundsElapsed || 0);
           setGhostSuccess(data.ghostSuccess || false);
           setShowGhostSuccessModal(data.showGhostSuccessModal || false);
-          setMouchardTargetId(data.mouchardTargetId || null);
+          setMouchardTargetId(data.mouchardTargetId !== undefined ? data.mouchardTargetId : null);
           setIsVoteMode(data.isVoteMode || false);
           setVotes(data.votes || {});
           setVoteTieMessage(data.voteTieMessage || null);
@@ -327,7 +327,8 @@ export default function App() {
     }
   }, [
     players, phase, event, timer, isTimerRunning, codeDigits, currentNightStep,
-    geminiTwinId, ghostTargetId, ghostRoundsElapsed, ghostSuccess, showGhostSuccessModal,
+    nightNumber, isNightActionModalOpen, geminiTwinId, engineerTargetId, spyTargetId,
+    doctorSavedId, ghostTargetId, ghostRoundsElapsed, ghostSuccess, showGhostSuccessModal,
     mouchardTargetId, isVoteMode, votes, voteTieMessage, eliminatedByVoteId,
     isVoteRevealPhase, isRoleRevealed, isHackerPowerActive, doubleAgentRoundsElapsed,
     doubleAgentChoice, nightEliminatedPlayerId, isNightRevealPhase, nightRevealStep
@@ -377,10 +378,12 @@ export default function App() {
     }
   }, [
     isAdminMode, user, isLoaded, players, phase, event, timer, isTimerRunning,
-    codeDigits, currentNightStep, geminiTwinId, ghostTargetId, ghostRoundsElapsed,
-    ghostSuccess, showGhostSuccessModal, mouchardTargetId, isVoteMode, votes,
-    voteTieMessage, eliminatedByVoteId, isVoteRevealPhase, isRoleRevealed,
-    isHackerPowerActive, doubleAgentRoundsElapsed, doubleAgentChoice
+    codeDigits, currentNightStep, nightNumber, isNightActionModalOpen, geminiTwinId, 
+    engineerTargetId, spyTargetId, doctorSavedId, ghostTargetId, ghostRoundsElapsed, 
+    ghostSuccess, showGhostSuccessModal, mouchardTargetId, isVoteMode, votes, 
+    voteTieMessage, eliminatedByVoteId, isVoteRevealPhase, isRoleRevealed, 
+    isHackerPowerActive, doubleAgentRoundsElapsed, doubleAgentChoice,
+    nightEliminatedPlayerId, isNightRevealPhase, nightRevealStep
   ]);
 
   const confirmResetGame = (count?: number) => {
@@ -1491,49 +1494,56 @@ export default function App() {
                         Le système de défense a tenu bon cette nuit.
                       </p>
                     </motion.div>
-                  ) : (
-                    <>
-                      {nightRevealStep >= 1 ? (
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="space-y-4"
-                        >
-                          <div className="w-24 h-24 bg-red-500/20 rounded-full flex items-center justify-center border-2 border-red-500 mx-auto">
-                            <Skull size={48} className="text-red-400" />
-                          </div>
-                          <h3 className="text-4xl font-display font-black text-white uppercase tracking-tighter">
-                            {players.find(p => p.id === nightEliminatedPlayerId)?.name}
-                          </h3>
-                          <p className="text-red-500 font-bold uppercase tracking-widest text-sm">
-                            Éliminé(e) au cours de la nuit
-                          </p>
-                        </motion.div>
-                      ) : (
-                        <div className="w-24 h-24 bg-slate-800 rounded-full flex items-center justify-center border-2 border-slate-700 animate-pulse">
-                          <HelpCircle size={48} className="text-slate-600" />
-                        </div>
-                      )}
+                  ) : (() => {
+                    const eliminatedPlayer = players.find(p => p.id === nightEliminatedPlayerId);
+                    if (!eliminatedPlayer) return (
+                      <div className="text-slate-500 italic">Données de mission corrompues...</div>
+                    );
 
-                      {nightRevealStep >= 2 && (
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          className="p-4 bg-slate-800/50 rounded-2xl border border-slate-700 w-full max-w-xs"
-                        >
-                          <p className="text-slate-500 text-[10px] uppercase font-mono mb-2">Identité Confirmée</p>
-                          <div className="flex items-center justify-center gap-3">
-                            <div className={ROLES_CONFIG[players.find(p => p.id === nightEliminatedPlayerId)?.role as RoleType]?.color}>
-                              {ROLES_CONFIG[players.find(p => p.id === nightEliminatedPlayerId)?.role as RoleType]?.icon}
+                    return (
+                      <>
+                        {nightRevealStep >= 1 ? (
+                          <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="space-y-4"
+                          >
+                            <div className="w-24 h-24 bg-red-500/20 rounded-full flex items-center justify-center border-2 border-red-500 mx-auto">
+                              <Skull size={48} className="text-red-400" />
                             </div>
-                            <span className={`text-xl font-bold ${ROLES_CONFIG[players.find(p => p.id === nightEliminatedPlayerId)?.role as RoleType]?.color}`}>
-                              {players.find(p => p.id === nightEliminatedPlayerId)?.role}
-                            </span>
+                            <h3 className="text-4xl font-display font-black text-white uppercase tracking-tighter">
+                              {eliminatedPlayer.name}
+                            </h3>
+                            <p className="text-red-500 font-bold uppercase tracking-widest text-sm">
+                              Éliminé(e) au cours de la nuit
+                            </p>
+                          </motion.div>
+                        ) : (
+                          <div className="w-24 h-24 bg-slate-800 rounded-full flex items-center justify-center border-2 border-slate-700 animate-pulse">
+                            <HelpCircle size={48} className="text-slate-600" />
                           </div>
-                        </motion.div>
-                      )}
-                    </>
-                  )}
+                        )}
+
+                        {nightRevealStep >= 2 && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="p-4 bg-slate-800/50 rounded-2xl border border-slate-700 w-full max-w-xs"
+                          >
+                            <p className="text-slate-500 text-[10px] uppercase font-mono mb-2">Identité Confirmée</p>
+                            <div className="flex items-center justify-center gap-3">
+                              <div className={ROLES_CONFIG[eliminatedPlayer.role as RoleType]?.color}>
+                                {ROLES_CONFIG[eliminatedPlayer.role as RoleType]?.icon}
+                              </div>
+                              <span className={`text-xl font-bold ${ROLES_CONFIG[eliminatedPlayer.role as RoleType]?.color}`}>
+                                {eliminatedPlayer.role}
+                              </span>
+                            </div>
+                          </motion.div>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
 
                 {isAdminMode && (
