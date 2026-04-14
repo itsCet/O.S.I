@@ -846,8 +846,8 @@ export default function App() {
         <div className="flex flex-col sm:flex-row items-center sm:items-start xl:items-center gap-4 text-center sm:text-left">
           <div className="w-16 h-16 rounded-2xl flex items-center justify-center overflow-hidden shrink-0 bg-slate-900 border-2 border-slate-700 shadow-[0_0_20px_rgba(0,0,0,0.3)]">
             <img 
-              src="/logo osi.png" 
-              alt="OSI Logo" 
+              src="/logo_osi.png" 
+              alt="logo_osi" 
               className="w-full h-full object-cover"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
