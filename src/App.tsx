@@ -160,9 +160,9 @@ const INITIAL_PLAYERS: Player[] = generatePlayers(8);
 
 export default function App() {
   const [players, setPlayers] = useState<Player[]>(INITIAL_PLAYERS);
-  const [phase, setPhase] = useState<GamePhase>('Night');
+  const [phase, setPhase] = useState<GamePhase>('Day');
   const [event, setEvent] = useState<GameEvent>('None');
-  const [timer, setTimer] = useState(240); // 4 minutes in seconds
+  const [timer, setTimer] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [codeDigits, setCodeDigits] = useState<(number | null)[]>([null, null, null, null, null, null]);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
@@ -173,7 +173,7 @@ export default function App() {
   const [newPlayerCount, setNewPlayerCount] = useState(10);
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [currentNightStep, setCurrentNightStep] = useState(0);
-  const [nightNumber, setNightNumber] = useState(1);
+  const [nightNumber, setNightNumber] = useState(0);
   const [isNightActionModalOpen, setIsNightActionModalOpen] = useState(false);
   const [geminiTwinId, setGeminiTwinId] = useState<number | null>(null);
   const [engineerTargetId, setEngineerTargetId] = useState<number | null>(null);
@@ -355,22 +355,20 @@ export default function App() {
   const confirmResetGame = (count?: number) => {
     const newPlayers = count ? generatePlayers(count) : generatePlayers(players.length);
     setPlayers(newPlayers);
-    setPhase('Night');
-    setNightNumber(1);
-    setIsNightActionModalOpen(true);
+    setPhase('Day');
+    setNightNumber(0);
+    setIsNightActionModalOpen(false);
     setCurrentNightStep(0);
     setGeminiTwinId(null);
     setEngineerTargetId(null);
     setSpyTargetId(null);
     setDoctorSavedId(null);
     setEvent('None');
-    setTimer(240);
+    setTimer(0);
     setIsTimerRunning(false);
     setCodeDigits([null, null, null, null, null, null]);
     setIsAdminOpen(false);
     setSelectedPlayerId(null);
-    setCurrentNightStep(0);
-    setGeminiTwinId(null);
     setGhostTargetId(null);
     setGhostRoundsElapsed(0);
     setGhostSuccess(false);
@@ -888,7 +886,7 @@ export default function App() {
               } ${!isAdminMode ? 'cursor-default pointer-events-none' : ''}`}
             >
               {phase === 'Day' ? <Zap size={20} /> : <Eye size={20} />}
-              {phase === 'Day' ? 'Phase Jour' : 'Phase Nuit'}
+              {nightNumber === 0 ? 'Lancer la Partie' : (phase === 'Day' ? 'Phase Jour' : 'Phase Nuit')}
             </button>
             {isAdminMode && (
               <button
