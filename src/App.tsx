@@ -192,6 +192,11 @@ export default function App() {
   const [spyTargetId, setSpyTargetId] = useState<number | null>(null);
   const [doctorSavedId, setDoctorSavedId] = useState<number | null>(null);
   
+  // Night Revelation Logic
+  const [nightEliminatedPlayerId, setNightEliminatedPlayerId] = useState<number | null>(null);
+  const [isNightRevealPhase, setIsNightRevealPhase] = useState(false);
+  const [nightRevealStep, setNightRevealStep] = useState(0); // 0: hidden, 1: name, 2: role
+
   // Ghost Logic
   const [ghostTargetId, setGhostTargetId] = useState<number | null>(null);
   const [ghostRoundsElapsed, setGhostRoundsElapsed] = useState(0);
@@ -257,6 +262,9 @@ export default function App() {
           setEngineerTargetId(data.engineerTargetId || null);
           setSpyTargetId(data.spyTargetId || null);
           setDoctorSavedId(data.doctorSavedId || null);
+          setNightEliminatedPlayerId(data.nightEliminatedPlayerId || null);
+          setIsNightRevealPhase(data.isNightRevealPhase || false);
+          setNightRevealStep(data.nightRevealStep || 0);
           setGhostTargetId(data.ghostTargetId || null);
           setGhostRoundsElapsed(data.ghostRoundsElapsed || 0);
           setGhostSuccess(data.ghostSuccess || false);
@@ -314,7 +322,7 @@ export default function App() {
     geminiTwinId, ghostTargetId, ghostRoundsElapsed, ghostSuccess, showGhostSuccessModal,
     mouchardTargetId, isVoteMode, votes, voteTieMessage, eliminatedByVoteId,
     isVoteRevealPhase, isRoleRevealed, isHackerPowerActive, doubleAgentRoundsElapsed,
-    doubleAgentChoice
+    doubleAgentChoice, nightEliminatedPlayerId, isNightRevealPhase, nightRevealStep
   ]);
 
   // Sync to Firebase with debounce
@@ -336,6 +344,9 @@ export default function App() {
           engineerTargetId,
           spyTargetId,
           doctorSavedId,
+          nightEliminatedPlayerId,
+          isNightRevealPhase,
+          nightRevealStep,
           ghostTargetId,
           ghostRoundsElapsed,
           ghostSuccess,
@@ -395,6 +406,9 @@ export default function App() {
     setIsHackerPowerActive(false);
     setDoubleAgentRoundsElapsed(0);
     setDoubleAgentChoice(null);
+    setNightEliminatedPlayerId(null);
+    setIsNightRevealPhase(false);
+    setNightRevealStep(0);
     setDismissedGameOver(false);
     setIsResetModalOpen(false);
   };
@@ -783,7 +797,7 @@ export default function App() {
         <div className="flex flex-col sm:flex-row items-center sm:items-start xl:items-center gap-4 text-center sm:text-left">
           <div className="w-16 h-16 rounded-2xl flex items-center justify-center overflow-hidden shrink-0 bg-slate-900 border-2 border-slate-700 shadow-[0_0_20px_rgba(0,0,0,0.3)]">
             <img 
-              src="/logo_osi.png" 
+              src="/logo osi.png" 
               alt="OSI Logo" 
               className="w-full h-full object-cover"
               onError={(e) => {
@@ -1420,7 +1434,143 @@ export default function App() {
           setEvent={setEvent}
           setTimer={setTimer}
           setIsTimerRunning={setIsTimerRunning}
+          setNightEliminatedPlayerId={setNightEliminatedPlayerId}
+          setIsNightRevealPhase={setIsNightRevealPhase}
+          setNightRevealStep={setNightRevealStep}
         />
+      </AnimatePresence>
+
+      {/* Night Revelation Modal */}
+      <AnimatePresence>
+        {isNightRevealPhase && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-950/98 backdrop-blur-2xl"
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden"
+            >
+              <div className="p-8 text-center space-y-8">
+                <div className="space-y-2">
+                  <h2 className="text-3xl font-display font-bold uppercase tracking-tighter text-white italic">
+                    Rapport de Mission
+                  </h2>
+                  <p className="text-indigo-400 font-mono text-xs uppercase tracking-widest">
+                    Analyse des activités nocturnes
+                  </p>
+                </div>
+
+                <div className="py-12 flex flex-col items-center justify-center min-h-[300px] space-y-6">
+                  {nightEliminatedPlayerId === null ? (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="space-y-4"
+                    >
+                      <div className="w-24 h-24 bg-emerald-500/20 rounded-full flex items-center justify-center border-2 border-emerald-500 mx-auto">
+                        <Shield size={48} className="text-emerald-400" />
+                      </div>
+                      <p className="text-2xl font-bold text-emerald-400 uppercase tracking-tight">
+                        Aucune victime à déplorer
+                      </p>
+                      <p className="text-slate-400 text-sm">
+                        Le système de défense a tenu bon cette nuit.
+                      </p>
+                    </motion.div>
+                  ) : (
+                    <>
+                      {nightRevealStep >= 1 ? (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="space-y-4"
+                        >
+                          <div className="w-24 h-24 bg-red-500/20 rounded-full flex items-center justify-center border-2 border-red-500 mx-auto">
+                            <Skull size={48} className="text-red-400" />
+                          </div>
+                          <h3 className="text-4xl font-display font-black text-white uppercase tracking-tighter">
+                            {players.find(p => p.id === nightEliminatedPlayerId)?.name}
+                          </h3>
+                          <p className="text-red-500 font-bold uppercase tracking-widest text-sm">
+                            Éliminé(e) au cours de la nuit
+                          </p>
+                        </motion.div>
+                      ) : (
+                        <div className="w-24 h-24 bg-slate-800 rounded-full flex items-center justify-center border-2 border-slate-700 animate-pulse">
+                          <HelpCircle size={48} className="text-slate-600" />
+                        </div>
+                      )}
+
+                      {nightRevealStep >= 2 && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="p-4 bg-slate-800/50 rounded-2xl border border-slate-700 w-full max-w-xs"
+                        >
+                          <p className="text-slate-500 text-[10px] uppercase font-mono mb-2">Identité Confirmée</p>
+                          <div className="flex items-center justify-center gap-3">
+                            <div className={ROLES_CONFIG[players.find(p => p.id === nightEliminatedPlayerId)?.role as RoleType]?.color}>
+                              {ROLES_CONFIG[players.find(p => p.id === nightEliminatedPlayerId)?.role as RoleType]?.icon}
+                            </div>
+                            <span className={`text-xl font-bold ${ROLES_CONFIG[players.find(p => p.id === nightEliminatedPlayerId)?.role as RoleType]?.color}`}>
+                              {players.find(p => p.id === nightEliminatedPlayerId)?.role}
+                            </span>
+                          </div>
+                        </motion.div>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {isAdminMode && (
+                  <div className="flex flex-col gap-3">
+                    {nightEliminatedPlayerId !== null && nightRevealStep < 1 && (
+                      <button
+                        onClick={() => setNightRevealStep(1)}
+                        className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold uppercase tracking-wider transition-all shadow-lg shadow-indigo-500/20"
+                      >
+                        Révéler la Victime
+                      </button>
+                    )}
+                    {nightEliminatedPlayerId !== null && nightRevealStep === 1 && (
+                      <button
+                        onClick={() => setNightRevealStep(2)}
+                        className="w-full py-4 bg-red-600 hover:bg-red-500 text-white rounded-2xl font-bold uppercase tracking-wider transition-all shadow-lg shadow-red-500/20"
+                      >
+                        Révéler le Rôle
+                      </button>
+                    )}
+                    {(nightEliminatedPlayerId === null || nightRevealStep >= 2) && (
+                      <button
+                        onClick={() => {
+                          if (nightEliminatedPlayerId !== null) {
+                            toggleStatus(nightEliminatedPlayerId, 'eliminated');
+                          }
+                          setPhase('Day');
+                          setIsNightRevealPhase(false);
+                          setNightRevealStep(0);
+                          setNightEliminatedPlayerId(null);
+                          setEvent('None');
+                          setTimer(240);
+                          setIsTimerRunning(true);
+                        }}
+                        className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/20"
+                      >
+                        Lancer le Jour
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
 
       {/* Dashboard Modal */}
