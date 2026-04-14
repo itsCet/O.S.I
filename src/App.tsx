@@ -1624,7 +1624,7 @@ export default function App() {
                         onClick={() => {
                           // Apply Night Results
                           if (spyTargetId && doctorSavedId !== spyTargetId) {
-                            setPlayers(prev => prev.map(p => p.id === spyTargetId ? { ...p, status: 'eliminated' } : p));
+                            toggleStatus(spyTargetId, 'eliminated');
                           }
                           
                           // Ghost Logic increment
