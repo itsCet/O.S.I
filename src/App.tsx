@@ -1475,12 +1475,13 @@ export default function App() {
       <AnimatePresence>
         {showInvestigatorResult && investigatorTargetId && (
           <motion.div
+            key="investigator-result"
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] w-full max-w-md px-4"
+            className="fixed top-24 left-1/2 -translate-x-1/2 z-[300] w-full max-w-md px-4 pointer-events-none"
           >
-            <div className="bg-slate-900/90 backdrop-blur-xl border-2 border-cyan-500 rounded-3xl shadow-2xl shadow-cyan-500/20 overflow-hidden">
+            <div className="bg-slate-900/95 backdrop-blur-xl border-2 border-cyan-500 rounded-3xl shadow-2xl shadow-cyan-500/20 overflow-hidden pointer-events-auto">
               <div className="bg-cyan-600/20 p-4 border-b border-cyan-500/30 flex items-center justify-center gap-3">
                 <Search className="text-cyan-400" size={24} />
                 <h3 className="text-xl font-display font-bold text-white uppercase tracking-tighter italic">
@@ -1491,7 +1492,7 @@ export default function App() {
                 <div className="space-y-1">
                   <p className="text-slate-400 text-[10px] uppercase font-mono tracking-widest">Sujet Interrogé</p>
                   <p className="text-3xl font-black text-white uppercase tracking-tight">
-                    {players.find(p => p.id === investigatorTargetId)?.name}
+                    {players.find(p => p.id === investigatorTargetId)?.name || "Inconnu"}
                   </p>
                 </div>
                 
@@ -1499,11 +1500,14 @@ export default function App() {
                   <p className="text-slate-500 text-[10px] uppercase font-mono mb-2">Statut d'activité nocturne</p>
                   {(() => {
                     const target = players.find(p => p.id === investigatorTargetId);
-                    const isActive = target && [
+                    if (!target) return <div className="text-slate-500 italic">Analyse impossible</div>;
+                    
+                    const activeRoles = [
                       'Espion', 'Ingénieur', 'Enquêteur', 'Médecin', 
                       'Agent Gemini', 'Agent Double', 'Stratège', 
                       'Polygraphiste', 'Agent Fantôme'
-                    ].includes(target.role);
+                    ];
+                    const isActive = activeRoles.includes(target.role);
                     
                     return (
                       <div className={`text-4xl font-display font-black uppercase tracking-tighter ${isActive ? 'text-emerald-400' : 'text-slate-400'}`}>
@@ -1645,6 +1649,8 @@ export default function App() {
                           setIsNightRevealPhase(false);
                           setNightRevealStep(0);
                           setNightEliminatedPlayerId(null);
+                          setInvestigatorTargetId(null);
+                          setShowInvestigatorResult(false);
                           setEvent('None');
                           setTimer(240);
                           setIsTimerRunning(true);
