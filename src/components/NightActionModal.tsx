@@ -46,6 +46,9 @@ interface NightActionModalProps {
   setEvent: (event: GameEvent) => void;
   setTimer: (timer: number) => void;
   setIsTimerRunning: (running: boolean) => void;
+  setNightEliminatedPlayerId: (id: number | null) => void;
+  setIsNightRevealPhase: (open: boolean) => void;
+  setNightRevealStep: (step: number) => void;
 }
 
 export const NightActionModal: React.FC<NightActionModalProps> = ({
@@ -77,6 +80,9 @@ export const NightActionModal: React.FC<NightActionModalProps> = ({
   setEvent,
   setTimer,
   setIsTimerRunning,
+  setNightEliminatedPlayerId,
+  setIsNightRevealPhase,
+  setNightRevealStep,
 }) => {
   if (!isOpen || !isAdminMode) return null;
 
@@ -289,9 +295,11 @@ export const NightActionModal: React.FC<NightActionModalProps> = ({
           ) : (
             <button 
               onClick={() => {
-                // Apply Night Results
+                // Calculate Night Results
                 if (spyTargetId && doctorSavedId !== spyTargetId) {
-                  toggleStatus(spyTargetId, 'eliminated');
+                  setNightEliminatedPlayerId(spyTargetId);
+                } else {
+                  setNightEliminatedPlayerId(null);
                 }
                 
                 // Ghost Logic increment
@@ -302,15 +310,13 @@ export const NightActionModal: React.FC<NightActionModalProps> = ({
                   setDoubleAgentRoundsElapsed(prev => prev + 1);
                 }
 
-                setPhase('Day');
+                setIsNightRevealPhase(true);
+                setNightRevealStep(0);
                 setIsNightActionModalOpen(false);
-                setEvent('None');
-                setTimer(240);
-                setIsTimerRunning(true);
               }}
               className="flex-1 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold uppercase tracking-wider transition-colors shadow-lg shadow-emerald-500/20"
             >
-              Terminer la Nuit & Lancer le Jour
+              Terminer la Nuit & Révélation
             </button>
           )}
         </div>
