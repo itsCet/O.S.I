@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -169,6 +169,7 @@ export default function App() {
   const [missingImages, setMissingImages] = useState<Set<string>>(new Set());
   const [dismissedGameOver, setDismissedGameOver] = useState(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [newPlayerCount, setNewPlayerCount] = useState(10);
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [currentNightStep, setCurrentNightStep] = useState(0);
   const [geminiTwinId, setGeminiTwinId] = useState<number | null>(null);
@@ -201,6 +202,7 @@ export default function App() {
   // Firebase & Dual Screen Logic
   const [user, setUser] = useState<any>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const isDirtyRef = useRef(false);
   const [isAdminMode, setIsAdminMode] = useState(window.location.hash === '#admin');
 
   useEffect(() => {
@@ -223,6 +225,7 @@ export default function App() {
       if (docSnap.exists()) {
         const data = docSnap.data();
         if (!isAdminMode || !isLoaded) {
+          isDirtyRef.current = false;
           setPlayers(data.players);
           setPhase(data.phase);
           setEvent(data.event);
@@ -278,35 +281,60 @@ export default function App() {
     return () => unsubscribe();
   }, [user, isAdminMode, isLoaded]);
 
+  // Mark state as dirty when admin changes it
   useEffect(() => {
-    if (isAdminMode && user && isLoaded) {
-      const docRef = doc(db, 'games', 'current_game');
-      setDoc(docRef, {
-        players,
-        phase,
-        event,
-        timer,
-        isTimerRunning,
-        codeDigits,
-        currentNightStep,
-        geminiTwinId,
-        ghostTargetId,
-        ghostRoundsElapsed,
-        ghostSuccess,
-        showGhostSuccessModal,
-        mouchardTargetId,
-        isVoteMode,
-        votes,
-        voteTieMessage,
-        eliminatedByVoteId,
-        isVoteRevealPhase,
-        isRoleRevealed,
-        isHackerPowerActive,
-        doubleAgentRoundsElapsed,
-        doubleAgentChoice
-      });
+    if (isAdminMode && isLoaded) {
+      isDirtyRef.current = true;
     }
-  }, [isAdminMode, user, isLoaded, players, phase, event, timer, isTimerRunning, codeDigits, currentNightStep, geminiTwinId, ghostTargetId, ghostRoundsElapsed, ghostSuccess, showGhostSuccessModal, mouchardTargetId, isVoteMode, votes, voteTieMessage, eliminatedByVoteId, isVoteRevealPhase, isRoleRevealed, isHackerPowerActive, doubleAgentRoundsElapsed, doubleAgentChoice]);
+  }, [
+    players, phase, event, timer, isTimerRunning, codeDigits, currentNightStep,
+    geminiTwinId, ghostTargetId, ghostRoundsElapsed, ghostSuccess, showGhostSuccessModal,
+    mouchardTargetId, isVoteMode, votes, voteTieMessage, eliminatedByVoteId,
+    isVoteRevealPhase, isRoleRevealed, isHackerPowerActive, doubleAgentRoundsElapsed,
+    doubleAgentChoice
+  ]);
+
+  // Sync to Firebase with debounce
+  useEffect(() => {
+    if (isAdminMode && user && isLoaded && isDirtyRef.current) {
+      const timeoutId = setTimeout(() => {
+        const docRef = doc(db, 'games', 'current_game');
+        setDoc(docRef, {
+          players,
+          phase,
+          event,
+          timer,
+          isTimerRunning,
+          codeDigits,
+          currentNightStep,
+          geminiTwinId,
+          ghostTargetId,
+          ghostRoundsElapsed,
+          ghostSuccess,
+          showGhostSuccessModal,
+          mouchardTargetId,
+          isVoteMode,
+          votes,
+          voteTieMessage,
+          eliminatedByVoteId,
+          isVoteRevealPhase,
+          isRoleRevealed,
+          isHackerPowerActive,
+          doubleAgentRoundsElapsed,
+          doubleAgentChoice,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+        isDirtyRef.current = false;
+      }, 500);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [
+    isAdminMode, user, isLoaded, players, phase, event, timer, isTimerRunning,
+    codeDigits, currentNightStep, geminiTwinId, ghostTargetId, ghostRoundsElapsed,
+    ghostSuccess, showGhostSuccessModal, mouchardTargetId, isVoteMode, votes,
+    voteTieMessage, eliminatedByVoteId, isVoteRevealPhase, isRoleRevealed,
+    isHackerPowerActive, doubleAgentRoundsElapsed, doubleAgentChoice
+  ]);
 
   const confirmResetGame = (count?: number) => {
     const newPlayers = count ? generatePlayers(count) : generatePlayers(players.length);
@@ -565,14 +593,14 @@ export default function App() {
     }, 100);
   };
 
-  const getPlayerCamp = (player: Player) => {
+  const getPlayerCamp = useCallback((player: Player) => {
     if (player.role === 'Agent Double') {
       if (doubleAgentChoice === 'espion') return 'spy';
       if (doubleAgentChoice === 'agent') return 'agent';
       return 'neutral';
     }
     return ROLES_CONFIG[player.role]?.camp || 'agent';
-  };
+  }, [doubleAgentChoice]);
 
   const stats = useMemo(() => {
     const active = players.filter(p => p.status === 'active');
@@ -1215,14 +1243,9 @@ export default function App() {
                 <label className="block text-xs font-mono text-slate-400 uppercase tracking-widest mb-2">Nombre de joueurs</label>
                 <select 
                   className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl p-3 font-bold outline-none focus:border-indigo-500 transition-colors"
-                  defaultValue={players.length}
-                  onChange={(e) => {
-                    // We don't need state for this since we only read it on confirm
-                    const select = e.target;
-                    select.dataset.count = select.value;
-                  }}
+                  value={newPlayerCount}
+                  onChange={(e) => setNewPlayerCount(parseInt(e.target.value, 10))}
                   id="player-count-select"
-                  data-count={players.length}
                 >
                   {Object.keys(RECOMMENDED_SETUPS).map(count => (
                     <option key={count} value={count}>{count} Joueurs</option>
@@ -1240,9 +1263,7 @@ export default function App() {
                 </button>
                 <button 
                   onClick={() => {
-                    const select = document.getElementById('player-count-select') as HTMLSelectElement;
-                    const count = parseInt(select?.dataset.count || String(players.length), 10);
-                    confirmResetGame(count);
+                    confirmResetGame(newPlayerCount);
                     setIsResetModalOpen(false);
                   }}
                   className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold uppercase tracking-wider transition-colors"
