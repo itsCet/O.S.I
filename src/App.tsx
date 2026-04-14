@@ -230,6 +230,7 @@ export default function App() {
   const [user, setUser] = useState<any>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const isDirtyRef = useRef(false);
+  const initialLoadDone = useRef(false);
   const [isAdminMode, setIsAdminMode] = useState(window.location.hash === '#admin');
 
   useEffect(() => {
@@ -251,7 +252,8 @@ export default function App() {
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        if (!isAdminMode || !isLoaded) {
+        if (!isAdminMode || !initialLoadDone.current) {
+          if (isAdminMode) initialLoadDone.current = true;
           isDirtyRef.current = false;
           setPlayers(data.players);
           setPhase(data.phase);
@@ -287,7 +289,8 @@ export default function App() {
           setDoubleAgentChoice(data.doubleAgentChoice || null);
           setIsLoaded(true);
         }
-      } else if (isAdminMode && !isLoaded) {
+      } else if (isAdminMode && !initialLoadDone.current) {
+        initialLoadDone.current = true;
         setDoc(docRef, {
           players: INITIAL_PLAYERS,
           phase: 'Day',
@@ -326,7 +329,7 @@ export default function App() {
       }
     });
     return () => unsubscribe();
-  }, [user, isAdminMode, isLoaded]);
+  }, [user, isAdminMode]);
 
   // Mark state as dirty when admin changes it
   useEffect(() => {
@@ -334,7 +337,7 @@ export default function App() {
       isDirtyRef.current = true;
     }
   }, [
-    players, phase, event, timer, isTimerRunning, codeDigits, currentNightStep,
+    players, phase, event, isTimerRunning, codeDigits, currentNightStep,
     nightNumber, isNightActionModalOpen, geminiTwinId, engineerTargetId, spyTargetId,
     doctorSavedId, ghostTargetId, ghostRoundsElapsed, ghostSuccess, showGhostSuccessModal,
     mouchardTargetId, isVoteMode, votes, voteTieMessage, eliminatedByVoteId,
@@ -446,18 +449,31 @@ export default function App() {
     });
   };
 
-  // Timer logic
+  // Timer logic (MJ)
   useEffect(() => {
+    if (!isAdminMode) return;
     let interval: NodeJS.Timeout;
     if (isTimerRunning && timer > 0) {
       interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
+        setTimer((prev) => Math.max(0, prev - 1));
       }, 1000);
     } else if (timer === 0) {
       setIsTimerRunning(false);
     }
     return () => clearInterval(interval);
-  }, [isTimerRunning, timer]);
+  }, [isAdminMode, isTimerRunning, timer]);
+
+  // Timer logic (Players - local sync)
+  useEffect(() => {
+    if (isAdminMode) return;
+    let interval: NodeJS.Timeout;
+    if (isTimerRunning && timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => Math.max(0, prev - 1));
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isAdminMode, isTimerRunning]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -1531,12 +1547,14 @@ export default function App() {
         {isNightRevealPhase && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
             <motion.div 
+              key="night-reveal-backdrop"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="absolute inset-0 bg-slate-950/98 backdrop-blur-2xl"
             />
             <motion.div 
+              key="night-reveal-content"
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
