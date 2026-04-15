@@ -1235,12 +1235,14 @@ export default function App() {
                         />
                       )}
 
-                      {/* Player Number (Top Right) - ALWAYS SHOW */}
-                      <div className="absolute top-1.5 right-1.5 z-20 bg-black/80 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-white/10">
-                        <span className="text-lg font-display font-black text-white">
-                          {player.id.toString().padStart(2, '0')}
-                        </span>
-                      </div>
+                      {/* Player Number (Top Right) - ONLY SHOW FOR MJ */}
+                      {isAdminMode && (
+                        <div className="absolute top-1.5 right-1.5 z-20 bg-black/80 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-white/10">
+                          <span className="text-lg font-display font-black text-white">
+                            {player.id.toString().padStart(2, '0')}
+                          </span>
+                        </div>
+                      )}
 
                       {/* Fallback UI - Only show if not revealed or image is missing */}
                       {(!isRoleVisible || !hasImage) && (
