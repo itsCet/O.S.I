@@ -1629,13 +1629,15 @@ export default function App() {
                               </div>
                             )}
 
-                            {nightRevealStep >= 2 && (
+                            {(nightRevealStep >= 2 || isAdminMode) && (
                               <motion.div
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="p-4 bg-slate-800/50 rounded-2xl border border-slate-700 w-full max-w-xs"
+                                className={`p-4 bg-slate-800/50 rounded-2xl border border-slate-700 w-full max-w-xs ${!isAdminMode && nightRevealStep < 2 ? 'hidden' : ''}`}
                               >
-                                <p className="text-slate-500 text-[10px] uppercase font-mono mb-2">Identité Confirmée</p>
+                                <p className="text-slate-500 text-[10px] uppercase font-mono mb-2">
+                                  Identité Confirmée {isAdminMode && nightRevealStep < 2 && <span className="text-amber-500 ml-2">(Privé MJ)</span>}
+                                </p>
                                 <div className="flex items-center justify-center gap-3">
                                   <div className={ROLES_CONFIG[eliminatedPlayer.role as RoleType]?.color}>
                                     {ROLES_CONFIG[eliminatedPlayer.role as RoleType]?.icon}
@@ -1675,13 +1677,15 @@ export default function App() {
                           </p>
                         </div>
                         
-                        {nightRevealStep >= 4 && (
+                        {(nightRevealStep >= 4 || isAdminMode) && (
                           <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="p-4 bg-slate-800/50 rounded-2xl border border-slate-700 mx-auto w-full max-w-xs"
+                            className={`p-4 bg-slate-800/50 rounded-2xl border border-slate-700 mx-auto w-full max-w-xs ${!isAdminMode && nightRevealStep < 4 ? 'hidden' : ''}`}
                           >
-                            <p className="text-slate-500 text-[10px] uppercase font-mono mb-2">Verdict Final</p>
+                            <p className="text-slate-500 text-[10px] uppercase font-mono mb-2">
+                              Verdict Final {isAdminMode && nightRevealStep < 4 && <span className="text-amber-500 ml-2">(Privé MJ)</span>}
+                            </p>
                             <div className="flex items-center justify-center gap-3">
                               <Ghost size={24} className="text-slate-400" />
                               <span className="text-xl font-bold text-slate-400 uppercase tracking-tight">Agent Fantôme</span>
@@ -1717,13 +1721,13 @@ export default function App() {
                     {/* Transition to Ghost */}
                     {ghostEliminatedPlayerId !== null && (
                       (nightEliminatedPlayerId === null && nightRevealStep === 0) || 
-                      (nightEliminatedPlayerId !== null && nightRevealStep === 2)
+                      (nightEliminatedPlayerId !== null && (nightRevealStep === 1 || nightRevealStep === 2))
                     ) && (
                       <button
                         onClick={() => setNightRevealStep(3)}
                         className="w-full py-4 bg-slate-700 hover:bg-slate-600 text-white rounded-2xl font-bold uppercase tracking-wider transition-all border border-slate-600"
                       >
-                        Suite du Rapport
+                        {nightRevealStep === 1 ? "Passer le Rôle & Suite" : "Suite du Rapport"}
                       </button>
                     )}
 
@@ -1738,8 +1742,8 @@ export default function App() {
                     )}
 
                     {/* End Reveal Button */}
-                    {((ghostEliminatedPlayerId === null && (nightEliminatedPlayerId === null || nightRevealStep >= 2)) || 
-                      (ghostEliminatedPlayerId !== null && nightRevealStep >= 4)) && (
+                    {((ghostEliminatedPlayerId === null && (nightEliminatedPlayerId === null || nightRevealStep >= 1)) || 
+                      (ghostEliminatedPlayerId !== null && (nightRevealStep === 3 || nightRevealStep >= 4))) && (
                       <button
                         onClick={() => {
                           if (nightEliminatedPlayerId !== null) {
@@ -1761,7 +1765,9 @@ export default function App() {
                         }}
                         className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/20"
                       >
-                        Lancer le Jour
+                        {((ghostEliminatedPlayerId === null && nightRevealStep === 1) || (ghostEliminatedPlayerId !== null && nightRevealStep === 3)) 
+                          ? "Passer le Rôle & Lancer le Jour" 
+                          : "Lancer le Jour"}
                       </button>
                     )}
                   </div>
