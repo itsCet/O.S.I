@@ -771,7 +771,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-slate-950 text-slate-100 p-2 sm:p-4 lg:p-8 font-sans overflow-x-hidden overflow-y-auto lg:overflow-hidden flex flex-col">
+    <div className="min-h-[100dvh] bg-slate-950 text-slate-100 p-1 sm:p-2 lg:p-3 font-sans overflow-x-hidden overflow-y-auto lg:overflow-hidden flex flex-col">
       {/* Night Guide Overlay */}
       <AnimatePresence>
         {phase === 'Night' && isAdminMode && (
@@ -842,9 +842,9 @@ export default function App() {
         )}
       </AnimatePresence>
       {/* Header Section */}
-      <header className="flex flex-col xl:flex-row justify-between items-center mb-4 lg:mb-8 gap-4 lg:gap-6">
-        <div className="flex flex-col sm:flex-row items-center sm:items-start xl:items-center gap-4 text-center sm:text-left">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center overflow-hidden shrink-0 bg-slate-900 border-2 border-slate-700 shadow-[0_0_20px_rgba(0,0,0,0.3)]">
+      <header className="flex flex-col xl:flex-row justify-between items-center mb-1 lg:mb-2 gap-2 lg:gap-4 shrink-0">
+        <div className="flex flex-col sm:flex-row items-center sm:items-start xl:items-center gap-3 text-center sm:text-left">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden shrink-0 bg-slate-900 border-2 border-slate-700 shadow-[0_0_20px_rgba(0,0,0,0.3)]">
             <img 
               src="/logo_osi.png" 
               alt="logo_osi" 
@@ -859,8 +859,8 @@ export default function App() {
             <Eye className="text-white hidden" size={32} />
           </div>
           <div>
-            <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 sm:gap-3">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold tracking-tighter text-white uppercase italic">
+            <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 sm:gap-2">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-display font-bold tracking-tighter text-white uppercase italic">
                 O.S.I <span className="text-red-500">: Alerte Espions</span>
               </h1>
               {isAdminMode && (
@@ -898,18 +898,18 @@ export default function App() {
                 </div>
               )}
             </div>
-            <p className="text-slate-400 font-mono text-xs sm:text-sm tracking-widest uppercase mt-1">Organisation Secrète Internationale // Playtest Final</p>
+            <p className="text-slate-400 font-mono text-[10px] sm:text-xs tracking-widest uppercase mt-0.5">Organisation Secrète Internationale // Playtest Final</p>
           </div>
         </div>
 
         {/* Code Display */}
-        <div className="flex flex-col items-center gap-2">
-          <span className="text-[10px] font-mono text-slate-500 uppercase tracking-[0.3em]">Code de Sécurité</span>
-          <div className="flex gap-2">
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-[9px] font-mono text-slate-500 uppercase tracking-[0.3em]">Code de Sécurité</span>
+          <div className="flex gap-1.5">
             {codeDigits.map((digit, i) => (
               <div 
                 key={i} 
-                className={`w-10 h-14 border-2 rounded flex items-center justify-center text-2xl font-mono font-bold transition-all duration-500 ${
+                className={`w-8 h-12 border-2 rounded flex items-center justify-center text-xl font-mono font-bold transition-all duration-500 ${
                   digit !== null 
                     ? 'border-cyan-500 text-cyan-400 bg-cyan-950/30 shadow-[0_0_10px_rgba(6,182,212,0.3)]' 
                     : 'border-slate-800 text-slate-800 bg-slate-900/50'
@@ -922,35 +922,35 @@ export default function App() {
         </div>
 
         {/* Stats & Phase */}
-        <div className="flex gap-4 items-center">
+        <div className="flex gap-3 items-center">
           <div className="flex flex-col items-end">
-            <div className="flex gap-4 mb-1">
+            <div className="flex gap-3 mb-0.5">
               <div className="text-right">
-                <p className="text-[10px] text-slate-500 uppercase font-mono">Agents</p>
-                <p className="text-xl font-display font-bold text-emerald-400">{stats.activeAgents}</p>
+                <p className="text-[9px] text-slate-500 uppercase font-mono">Agents</p>
+                <p className="text-lg font-display font-bold text-emerald-400">{stats.activeAgents}</p>
               </div>
               <div className="text-right">
-                <p className="text-[10px] text-slate-500 uppercase font-mono">Espions</p>
-                <p className="text-xl font-display font-bold text-red-500">{stats.spies}</p>
+                <p className="text-[9px] text-slate-500 uppercase font-mono">Espions</p>
+                <p className="text-lg font-display font-bold text-red-500">{stats.spies}</p>
               </div>
               <div className="text-right">
-                <p className="text-[10px] text-slate-500 uppercase font-mono">Pertes</p>
-                <p className="text-xl font-display font-bold text-slate-400">{stats.eliminated}</p>
+                <p className="text-[9px] text-slate-500 uppercase font-mono">Pertes</p>
+                <p className="text-lg font-display font-bold text-slate-400">{stats.eliminated}</p>
               </div>
             </div>
           </div>
           
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1.5">
             <button 
               onClick={handlePhaseChange}
-              className={`px-6 py-3 rounded-xl font-display font-bold uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 border-2 ${
+              className={`px-4 py-2 rounded-lg font-display font-bold uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 border-2 ${
                 phase === 'Day' 
                   ? 'bg-amber-500/10 border-amber-500 text-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.2)]' 
                   : 'bg-indigo-500/10 border-indigo-500 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.2)]'
               } ${!isAdminMode ? 'cursor-default pointer-events-none' : ''}`}
             >
-              {phase === 'Day' ? <Zap size={20} /> : <Eye size={20} />}
-              {nightNumber === 0 ? 'Lancer la Partie' : (phase === 'Day' ? 'Phase Jour' : 'Phase Nuit')}
+              {phase === 'Day' ? <Zap size={16} /> : <Eye size={16} />}
+              {nightNumber === 0 ? 'Lancer' : (phase === 'Day' ? 'Jour' : 'Nuit')}
             </button>
             {isAdminMode && (
               <button
@@ -966,7 +966,7 @@ export default function App() {
       </header>
 
       {/* Main Content Grid */}
-      <main className="flex-1 flex flex-col lg:grid lg:grid-cols-4 gap-4 lg:gap-6 overflow-visible lg:overflow-hidden">
+      <main className="flex-1 flex flex-col lg:grid lg:grid-cols-4 gap-2 lg:gap-4 overflow-visible lg:overflow-hidden">
         
         {isVoteMode ? (
           <div className="lg:col-span-4 bg-slate-900/50 border border-slate-800 rounded-2xl p-6 flex flex-col overflow-hidden">
@@ -1111,13 +1111,13 @@ export default function App() {
         ) : (
           <>
             {/* Left Sidebar: Events & Timer */}
-            <div className="lg:col-span-1 flex flex-col gap-4 lg:gap-6">
+            <div className="lg:col-span-1 flex flex-col gap-2 lg:gap-4">
           {/* Timer Card */}
-          <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 flex flex-col items-center gap-4">
-            <div className="flex items-center gap-2 text-slate-400 uppercase font-mono text-xs tracking-widest">
-              <Timer size={14} /> Discussion
+          <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-4 flex flex-col items-center gap-2">
+            <div className="flex items-center gap-2 text-slate-400 uppercase font-mono text-[10px] tracking-widest">
+              <Timer size={12} /> Discussion
             </div>
-            <div className={`text-6xl font-mono font-bold tracking-tighter ${timer < 30 ? 'text-red-500 animate-pulse' : 'text-white'}`}>
+            <div className={`text-5xl font-mono font-bold tracking-tighter ${timer < 30 ? 'text-red-500 animate-pulse' : 'text-white'}`}>
               {formatTime(timer)}
             </div>
             <div className="flex gap-2 w-full">
@@ -1141,47 +1141,47 @@ export default function App() {
           </div>
 
           {/* Events Card */}
-          <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 flex-1 overflow-y-auto">
-            <h3 className="text-slate-500 uppercase font-mono text-xs tracking-widest mb-4 flex items-center gap-2">
-              <AlertTriangle size={14} /> Événements Actifs
+          <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-4 flex-1 overflow-y-auto">
+            <h3 className="text-slate-500 uppercase font-mono text-[10px] tracking-widest mb-3 flex items-center gap-2">
+              <AlertTriangle size={12} /> Événements Actifs
             </h3>
             
             {isAdminMode && (
               <button
                 onClick={handleRandomEvent}
                 disabled={isDecryptingEvent}
-                className={`w-full mb-4 p-3 rounded-xl border flex items-center justify-center gap-2 font-bold uppercase tracking-wider transition-all ${
+                className={`w-full mb-3 p-2 rounded-lg border flex items-center justify-center gap-2 font-bold uppercase tracking-wider transition-all text-xs ${
                   isDecryptingEvent 
                     ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-400 animate-pulse' 
                     : 'bg-indigo-600 hover:bg-indigo-500 border-indigo-500 text-white'
                 }`}
               >
-                <Cpu size={18} className={isDecryptingEvent ? 'animate-spin' : ''} />
-                {isDecryptingEvent ? 'Décryptage en cours...' : 'Tirer un événement au sort'}
+                <Cpu size={14} className={isDecryptingEvent ? 'animate-spin' : ''} />
+                {isDecryptingEvent ? 'Décryptage...' : 'Tirer un sort'}
               </button>
             )}
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {(['None', 'Silence', 'Mission Chaos', 'Veillée', 'Promotion', 'Protection Renforcée', 'Brouilleur d\'ondes'] as GameEvent[]).map((e) => (
                 <button
                   key={e}
                   onClick={() => isAdminMode && handleEventChange(e)}
-                  className={`w-full text-left p-3 rounded-xl border transition-all duration-200 flex items-center justify-between group ${
+                  className={`w-full text-left p-2 rounded-lg border transition-all duration-200 flex items-center justify-between group ${
                     event === e 
                       ? 'bg-red-500/10 border-red-500 text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.1)]' 
                       : 'bg-slate-900/50 border-slate-800 text-slate-400 hover:border-slate-600'
                   } ${!isAdminMode ? 'cursor-default pointer-events-none' : ''}`}
                 >
-                  <span className="text-sm font-medium">{e === 'None' ? 'Aucun événement' : e}</span>
-                  {e === 'Silence' && <VolumeX size={16} className={event === e ? 'text-red-400' : 'text-slate-600'} />}
-                  {e === 'Veillée' && <Ghost size={16} className={event === e ? 'text-red-400' : 'text-slate-600'} />}
-                  {e === 'Brouilleur d\'ondes' && <Radio size={16} className={event === e ? 'text-red-400' : 'text-slate-600'} />}
+                  <span className="text-xs font-medium">{e === 'None' ? 'Aucun' : e}</span>
+                  {e === 'Silence' && <VolumeX size={14} className={event === e ? 'text-red-400' : 'text-slate-600'} />}
+                  {e === 'Veillée' && <Ghost size={14} className={event === e ? 'text-red-400' : 'text-slate-600'} />}
+                  {e === 'Brouilleur d\'ondes' && <Radio size={14} className={event === e ? 'text-red-400' : 'text-slate-600'} />}
                 </button>
               ))}
             </div>
             {event !== 'None' && (
-              <div className="mt-6 p-4 bg-red-500/5 border border-red-500/20 rounded-xl">
-                <p className="text-xs text-red-400 italic leading-relaxed">
+              <div className="mt-4 p-3 bg-red-500/5 border border-red-500/20 rounded-lg">
+                <p className="text-[10px] text-red-400 italic leading-tight">
                   {event === 'Silence' && "Le temps de discussion est réduit à 1 minute."}
                   {event === 'Mission Chaos' && "Les votes de cette journée seront tenus secrets."}
                   {event === 'Veillée' && "Les espions ne pourront pas tuer la prochaine nuit."}
@@ -1195,8 +1195,8 @@ export default function App() {
         </div>
 
         {/* Player Grid: Main View */}
-        <div className="lg:col-span-3 bg-slate-900/30 border border-slate-800/50 rounded-3xl p-3 sm:p-5 overflow-y-visible lg:overflow-y-auto">
-          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3 sm:gap-4">
+        <div className="lg:col-span-3 bg-slate-900/30 border border-slate-800/50 rounded-2xl p-2 sm:p-3 overflow-y-visible lg:overflow-y-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3">
             {(isAdminMode ? players : sortedPlayers).map((player) => (
               <motion.div
                 key={player.id}
