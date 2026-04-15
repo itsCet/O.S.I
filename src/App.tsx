@@ -130,6 +130,7 @@ const RECOMMENDED_SETUPS: Record<number, { espions: number, agentsSecrets: numbe
   22: { espions: 5, agentsSecrets: 6, special: ['Agent Gemini', 'Enquêteur', 'Médecin', 'Ingénieur', 'Agent Double', 'Stratège', 'Polygraphiste', 'Supérieur Hiérarchique', 'Agent Russe', 'Hacker', 'Négociateur'] },
   23: { espions: 6, agentsSecrets: 6, special: ['Agent Gemini', 'Enquêteur', 'Médecin', 'Ingénieur', 'Agent Double', 'Stratège', 'Polygraphiste', 'Supérieur Hiérarchique', 'Agent Russe', 'Hacker', 'Négociateur'] },
   24: { espions: 6, agentsSecrets: 6, special: ['Agent Gemini', 'Enquêteur', 'Médecin', 'Ingénieur', 'Agent Double', 'Stratège', 'Polygraphiste', 'Supérieur Hiérarchique', 'Agent Russe', 'Hacker', 'Négociateur', 'Agent Fantôme'] },
+  25: { espions: 6, agentsSecrets: 7, special: ['Agent Gemini', 'Enquêteur', 'Médecin', 'Ingénieur', 'Agent Double', 'Stratège', 'Polygraphiste', 'Supérieur Hiérarchique', 'Agent Russe', 'Hacker', 'Négociateur', 'Agent Fantôme'] },
 };
 
 const generatePlayers = (count: number): Player[] => {
@@ -842,12 +843,12 @@ export default function App() {
         )}
       </AnimatePresence>
       {/* Header Section */}
-      <header className="flex flex-col xl:flex-row justify-between items-center mb-1 lg:mb-2 gap-2 lg:gap-4 shrink-0">
+      <header className="flex flex-col xl:flex-row justify-between items-center mb-1 lg:mb-1.5 gap-2 lg:gap-3 shrink-0">
         <div className="flex flex-col sm:flex-row items-center sm:items-start xl:items-center gap-3 text-center sm:text-left">
           <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden shrink-0 bg-slate-900 border-2 border-slate-700 shadow-[0_0_20px_rgba(0,0,0,0.3)]">
             <img 
-              src="/logo_osi.png" 
-              alt="logo_osi" 
+              src="/logo osi.png" 
+              alt="OSI Logo" 
               className="w-full h-full object-cover"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
@@ -966,7 +967,7 @@ export default function App() {
       </header>
 
       {/* Main Content Grid */}
-      <main className="flex-1 flex flex-col lg:grid lg:grid-cols-4 gap-2 lg:gap-4 overflow-visible lg:overflow-hidden">
+      <main className="flex-1 flex flex-col lg:grid lg:grid-cols-4 gap-2 lg:gap-3 overflow-visible lg:overflow-hidden">
         
         {isVoteMode ? (
           <div className="lg:col-span-4 bg-slate-900/50 border border-slate-800 rounded-2xl p-6 flex flex-col overflow-hidden">
@@ -1195,8 +1196,8 @@ export default function App() {
         </div>
 
         {/* Player Grid: Main View */}
-        <div className="lg:col-span-3 bg-slate-900/30 border border-slate-800/50 rounded-2xl p-2 sm:p-3 overflow-y-visible lg:overflow-y-auto">
-          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3">
+        <div className="lg:col-span-3 bg-slate-900/30 border border-slate-800/50 rounded-2xl p-2 sm:p-2 overflow-y-visible lg:overflow-y-auto min-h-0">
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-9 gap-1.5 sm:gap-2">
             {(isAdminMode ? players : sortedPlayers).map((player) => (
               <motion.div
                 key={player.id}
@@ -1281,11 +1282,11 @@ export default function App() {
                           )}
 
                           {/* Bottom Info Box (Like PDF) */}
-                          <div className="mt-auto relative z-10 bg-black/80 backdrop-blur-sm p-2.5 border-t border-white/5">
-                            <p className={`text-[8px] font-mono uppercase tracking-widest mb-0.5 ${player.status !== 'active' ? 'text-slate-600' : 'text-slate-500'}`}>
+                          <div className="mt-auto relative z-10 bg-black/80 backdrop-blur-sm p-1.5 sm:p-2 border-t border-white/5">
+                            <p className={`text-[7px] font-mono uppercase tracking-widest mb-0 ${player.status !== 'active' ? 'text-slate-600' : 'text-slate-500'}`}>
                               {player.status === 'active' ? 'Opérationnel' : 'Éliminé'}
                             </p>
-                            <h4 className={`font-display font-bold leading-tight text-[11px] uppercase italic tracking-tighter ${
+                            <h4 className={`font-display font-bold leading-tight text-[10px] sm:text-[11px] uppercase italic tracking-tighter ${
                               !isRoleVisible ? 'text-white' : roleConfig.color
                             }`}>
                               {isRoleVisible ? (player.role === 'Agent Double' && doubleAgentChoice ? `Agent Double (${doubleAgentChoice === 'agent' ? 'Agent' : 'Espion'})` : player.role) : player.name}
