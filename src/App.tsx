@@ -718,6 +718,12 @@ export default function App() {
     return { activeAgents, eliminated, spies };
   }, [players, doubleAgentChoice]);
 
+  const tensionLevel = useMemo(() => {
+    const totalPossibleAgents = players.filter(p => ROLES_CONFIG[p.role].camp !== 'spy').length;
+    const deadAgents = players.filter(p => ROLES_CONFIG[p.role].camp !== 'spy' && p.status === 'eliminated').length;
+    return totalPossibleAgents > 0 ? Math.round((deadAgents / totalPossibleAgents) * 100) : 0;
+  }, [players]);
+
   const gameStatus = useMemo(() => {
     const active = players.filter(p => p.status === 'active');
     const activeSpies = active.filter(p => getPlayerCamp(p) === 'spy').length;
@@ -772,7 +778,8 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-slate-950 text-slate-100 p-1 sm:p-2 lg:p-3 font-sans overflow-x-hidden overflow-y-auto lg:overflow-hidden flex flex-col">
+    <div className={`min-h-[100dvh] bg-slate-950 text-slate-100 p-1 sm:p-2 lg:p-3 font-sans overflow-x-hidden overflow-y-auto lg:overflow-hidden flex flex-col ${tensionLevel > 70 ? 'tension-glow-high' : 'tension-glow-low'}`}>
+      {tensionLevel > 70 && <div className="high-tension-overlay" />}
       {/* Night Guide Overlay */}
       <AnimatePresence>
         {phase === 'Night' && isAdminMode && (
@@ -847,8 +854,8 @@ export default function App() {
         <div className="flex flex-col sm:flex-row items-center sm:items-start xl:items-center gap-3 text-center sm:text-left">
           <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden shrink-0 bg-slate-900 border-2 border-slate-700 shadow-[0_0_20px_rgba(0,0,0,0.3)]">
             <img 
-              src="/logo_osi.png" 
-              alt="logo_osi" 
+              src="/logo osi.png" 
+              alt="OSI Logo" 
               className="w-full h-full object-cover"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
@@ -861,8 +868,10 @@ export default function App() {
           </div>
           <div>
             <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 sm:gap-2">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-display font-bold tracking-tighter text-white uppercase italic">
-                O.S.I <span className="text-red-500">: Alerte Espions</span>
+              <h1 className={`text-xl sm:text-2xl lg:text-3xl font-display font-bold tracking-tighter uppercase italic transition-colors ${
+                tensionLevel > 70 ? 'text-red-500 glitch-effect' : 'text-white'
+              }`}>
+                O.S.I <span className={tensionLevel > 70 ? 'text-white' : 'text-red-500'}>: Alerte Espions</span>
               </h1>
               {isAdminMode && (
                 <div className="flex flex-wrap items-center justify-center gap-2 mt-2 sm:mt-0">
@@ -901,6 +910,28 @@ export default function App() {
             </div>
             <p className="text-slate-400 font-mono text-[10px] sm:text-xs tracking-widest uppercase mt-0.5">Organisation Secrète Internationale // Playtest Final</p>
           </div>
+        </div>
+
+        {/* Tension Meter */}
+        <div className="hidden md:flex flex-col items-center gap-1 min-w-[120px]">
+          <div className="flex justify-between w-full px-1">
+            <span className={`text-[8px] font-mono uppercase tracking-widest ${tensionLevel > 70 ? 'text-red-500 glitch-effect' : 'text-slate-500'}`}>Tension Système</span>
+            <span className={`text-[8px] font-mono font-bold ${tensionLevel > 70 ? 'text-red-500' : 'text-cyan-500'}`}>{tensionLevel}%</span>
+          </div>
+          <div className="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800 p-[1px]">
+            <motion.div 
+              initial={{ width: 0 }}
+              animate={{ width: `${tensionLevel}%` }}
+              className={`h-full rounded-full ${
+                tensionLevel > 70 ? 'bg-gradient-to-r from-red-600 to-red-400' : 
+                tensionLevel > 40 ? 'bg-gradient-to-r from-amber-600 to-amber-400' : 
+                'bg-gradient-to-r from-cyan-600 to-cyan-400'
+              }`}
+            />
+          </div>
+          <p className={`text-[7px] font-mono uppercase tracking-tighter ${tensionLevel > 70 ? 'text-red-400 animate-pulse' : 'text-slate-600'}`}>
+            {tensionLevel > 70 ? '!!! ANOMALIE DÉTECTÉE !!!' : tensionLevel > 40 ? 'Instabilité croissante' : 'Système Stable'}
+          </p>
         </div>
 
         {/* Code Display */}
@@ -1196,7 +1227,11 @@ export default function App() {
         </div>
 
         {/* Player Grid: Main View */}
-        <div className="lg:col-span-3 bg-slate-900/30 border border-slate-800/50 rounded-2xl p-2 sm:p-2 overflow-y-visible lg:overflow-y-auto min-h-0">
+        <div className={`lg:col-span-3 border rounded-2xl p-2 sm:p-2 overflow-y-visible lg:overflow-y-auto min-h-0 transition-colors duration-1000 ${
+          tensionLevel > 70 
+            ? 'bg-red-950/10 border-red-500/30' 
+            : 'bg-slate-900/30 border-slate-800/50'
+        }`}>
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-9 gap-1.5 sm:gap-2">
             {(isAdminMode ? players : sortedPlayers).map((player) => (
               <motion.div
