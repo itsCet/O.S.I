@@ -373,6 +373,7 @@ export default function App() {
   // Agent Double Logic
   const [doubleAgentRoundsElapsed, setDoubleAgentRoundsElapsed] = useState(0);
   const [doubleAgentChoice, setDoubleAgentChoice] = useState<'agent' | 'espion' | null>(null);
+  const [showVictoryScreen, setShowVictoryScreen] = useState(false);
 
   // Firebase & Dual Screen Logic
   const [user, setUser] = useState<any>(null);
@@ -440,6 +441,7 @@ export default function App() {
           setIsHackerPowerActive(data.isHackerPowerActive || false);
           setDoubleAgentRoundsElapsed(data.doubleAgentRoundsElapsed || 0);
           setDoubleAgentChoice(data.doubleAgentChoice || null);
+          setShowVictoryScreen(data.showVictoryScreen || false);
           setIsLoaded(true);
         }
       } else if (isAdminMode && !initialLoadDone.current) {
@@ -498,7 +500,7 @@ export default function App() {
     isVoteRevealPhase, isRoleRevealed, isHackerPowerActive, 
     russeDuelResult, russeTargetId, russeAgentId, showRusseDuelModal,
     doubleAgentRoundsElapsed, 
-    doubleAgentChoice, nightEliminatedPlayerId, ghostEliminatedPlayerId, isNightRevealPhase, nightRevealStep,
+    doubleAgentChoice, showVictoryScreen, nightEliminatedPlayerId, ghostEliminatedPlayerId, isNightRevealPhase, nightRevealStep,
     investigatorTargetId, showInvestigatorResult
   ]);
 
@@ -545,6 +547,7 @@ export default function App() {
           isHackerPowerActive,
           doubleAgentRoundsElapsed,
           doubleAgentChoice,
+          showVictoryScreen,
           updatedAt: new Date().toISOString()
         }, { merge: true });
         isDirtyRef.current = false;
@@ -601,6 +604,7 @@ export default function App() {
     setShowInvestigatorResult(false);
     setNightEliminatedPlayerId(null);
     setGhostEliminatedPlayerId(null);
+    setShowVictoryScreen(false);
     setIsNightRevealPhase(false);
     setNightRevealStep(0);
     setDismissedGameOver(false);
@@ -1359,6 +1363,16 @@ export default function App() {
               </button>
             )}
 
+            {isAdminMode && gameStatus.isOver && !showVictoryScreen && (
+              <button
+                onClick={() => setShowVictoryScreen(true)}
+                className="w-full mb-3 p-3 rounded-lg border-2 border-emerald-500 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 font-bold uppercase tracking-wider transition-all text-sm flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.2)] animate-pulse"
+              >
+                <Shield size={16} />
+                Révéler la Victoire
+              </button>
+            )}
+
             <div className="space-y-1.5">
               {(['None', 'Silence', 'Mission Chaos', 'Veillée', 'Promotion', 'Protection Renforcée', 'Brouilleur d\'ondes'] as GameEvent[]).map((e) => (
                 <button
@@ -1484,7 +1498,7 @@ export default function App() {
 
       {/* Game Over Modal */}
       <AnimatePresence>
-        {gameStatus.isOver && !dismissedGameOver && (
+        {showVictoryScreen && !dismissedGameOver && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <motion.div 
               initial={{ opacity: 0 }}
