@@ -172,6 +172,145 @@ export const NIGHT_STEPS = [
 
 // --- Components ---
 
+const PlayerCard = React.memo(({ 
+  player, 
+  isAdminMode, 
+  doubleAgentChoice, 
+  onClick, 
+  missingImages, 
+  handleImageError 
+}: { 
+  player: Player, 
+  isAdminMode: boolean, 
+  doubleAgentChoice: string | null, 
+  onClick: () => void,
+  missingImages: Set<string>,
+  handleImageError: (url: string) => void
+}) => {
+  const roleConfig = ROLES_CONFIG[player.role];
+  const hasImage = !missingImages.has(roleConfig.image);
+  const isRoleVisible = true;
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      whileHover={{ scale: 1.02 }}
+      onClick={onClick}
+      className={`relative aspect-[4/5] rounded-xl border-2 ${isAdminMode ? 'cursor-pointer' : ''} transition-all duration-300 flex flex-col overflow-hidden group ${
+        player.status === 'eliminated' ? 'bg-slate-950 border-slate-900 opacity-50 grayscale' :
+        (isAdminMode || player.revealed) ? (player.role === 'Espion' ? 'bg-red-950/20 border-red-500/50 spy-card-glow reveal-anim' : 'bg-emerald-950/20 border-emerald-500/50 agent-card-glow reveal-anim') :
+        'bg-slate-900/80 border-slate-800 hover:border-slate-600'
+      }`}
+    >
+      {isRoleVisible && (
+        <img 
+          src={roleConfig.image} 
+          alt={player.role}
+          className={`absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-300 ${hasImage ? 'opacity-100' : 'opacity-0'}`}
+          onError={() => handleImageError(roleConfig.image)}
+        />
+      )}
+
+      {isAdminMode && (
+        <div className="absolute top-1.5 right-1.5 z-20 bg-black/80 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-white/10">
+          <span className="text-lg font-display font-black text-white">
+            {player.id.toString().padStart(2, '0')}
+          </span>
+        </div>
+      )}
+
+      {(!isRoleVisible || !hasImage) && (
+        <>
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-800 to-slate-950 flex items-center justify-center z-0">
+            {!isRoleVisible ? (
+              <UserX size={40} className="text-slate-800" />
+            ) : (
+              <div className="opacity-20">
+                {React.cloneElement(roleConfig.icon as React.ReactElement, { size: 56 })}
+              </div>
+            )}
+          </div>
+
+          {isRoleVisible && (
+            <div className="absolute top-1.5 left-1.5 flex flex-col gap-1 z-10">
+              <div className="bg-black/60 backdrop-blur-sm p-1 rounded-md flex flex-col items-center min-w-[30px]">
+                <span className="text-[7px] font-bold uppercase text-slate-300 leading-none mb-0.5">Rôle</span>
+                {roleConfig.phase === 'night' ? <Pause size={10} className="text-white rotate-90" /> : <Zap size={10} className="text-amber-400" />}
+              </div>
+              <div className="bg-black/60 backdrop-blur-sm p-1 rounded-full flex items-center justify-center w-6 h-6">
+                {roleConfig.camp === 'spy' || (player.role === 'Agent Double' && doubleAgentChoice === 'espion') ? (
+                  <span className="text-[10px]">👎</span>
+                ) : roleConfig.camp === 'agent' || (player.role === 'Agent Double' && doubleAgentChoice === 'agent') ? (
+                  <span className="text-[10px]">👍</span>
+                ) : (
+                  <div className="flex gap-0.5">
+                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full" />
+                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="mt-auto relative z-10 bg-black/80 backdrop-blur-sm p-1.5 sm:p-2 border-t border-white/5">
+            <p className={`text-[7px] font-mono uppercase tracking-widest mb-0 ${player.status !== 'active' ? 'text-slate-600' : 'text-slate-500'}`}>
+              {player.status === 'active' ? 'Opérationnel' : 'Éliminé'}
+            </p>
+            <h4 className={`font-display font-bold leading-tight text-[10px] sm:text-[11px] uppercase italic tracking-tighter ${
+              !isRoleVisible ? 'text-white' : roleConfig.color
+            }`}>
+              {isRoleVisible ? (player.role === 'Agent Double' && doubleAgentChoice ? `Agent Double (${doubleAgentChoice === 'agent' ? 'Agent' : 'Espion'})` : player.role) : player.name}
+            </h4>
+          </div>
+        </>
+      )}
+
+      {player.status !== 'active' && (
+        <div className="absolute inset-0 bg-slate-950/40 rounded-2xl flex items-center justify-center pointer-events-none z-30">
+          <div className="rotate-[-15deg] border-4 border-red-600/50 px-2 py-1 rounded text-red-600/50 font-black uppercase text-xs backdrop-blur-sm bg-black/20">
+            Éliminé
+          </div>
+        </div>
+      )}
+
+      {/* MJ Tooltip on Hover */}
+      {isAdminMode && player.status === 'active' && (
+        <div className="absolute inset-0 bg-black/90 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-40 p-2 flex flex-col items-center justify-center text-center pointer-events-none">
+          <div className={`mb-1 ${roleConfig.color}`}>
+            {React.cloneElement(roleConfig.icon as React.ReactElement, { size: 24 })}
+          </div>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white mb-1">{player.role}</p>
+          <p className="text-[9px] text-slate-300 leading-tight italic px-1">{roleConfig.description}</p>
+        </div>
+      )}
+    </motion.div>
+  );
+});
+
+const CodeDisplay = React.memo(({ digits }: { digits: (number | null)[] }) => {
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <span className="text-[9px] font-mono text-slate-500 uppercase tracking-[0.3em]">Code de Sécurité</span>
+      <div className="flex gap-1.5">
+        {digits.map((digit, i) => (
+          <div 
+            key={i} 
+            className={`w-8 h-12 border-2 rounded flex items-center justify-center text-xl font-mono font-bold transition-all duration-500 ${
+              digit !== null 
+                ? 'border-cyan-500 text-cyan-400 bg-cyan-950/30 shadow-[0_0_10px_rgba(6,182,212,0.3)]' 
+                : 'border-slate-800 text-slate-800 bg-slate-900/50'
+            }`}
+          >
+            {digit !== null ? digit : '?'}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+});
+
 export default function App() {
   const [players, setPlayers] = useState<Player[]>(INITIAL_PLAYERS);
   const [phase, setPhase] = useState<GamePhase>('Day');
@@ -448,13 +587,14 @@ export default function App() {
     setIsResetModalOpen(false);
   };
 
-  const handleImageError = (imagePath: string) => {
+  const handleImageError = useCallback((imagePath: string) => {
     setMissingImages(prev => {
+      if (prev.has(imagePath)) return prev;
       const newSet = new Set(prev);
       newSet.add(imagePath);
       return newSet;
     });
-  };
+  }, []);
 
   // Timer logic (MJ)
   useEffect(() => {
@@ -748,11 +888,13 @@ export default function App() {
     }
   }, [gameStatus.isOver]);
 
-  const sortedPlayers = [...players].sort((a, b) => {
-    const orderDiff = (ROLE_ORDER[a.role] || 99) - (ROLE_ORDER[b.role] || 99);
-    if (orderDiff !== 0) return orderDiff;
-    return a.id - b.id;
-  });
+  const sortedPlayers = useMemo(() => {
+    return [...players].sort((a, b) => {
+      const orderDiff = (ROLE_ORDER[a.role] || 99) - (ROLE_ORDER[b.role] || 99);
+      if (orderDiff !== 0) return orderDiff;
+      return a.id - b.id;
+    });
+  }, [players]);
 
   if (!user) {
     return (
@@ -780,6 +922,26 @@ export default function App() {
   return (
     <div className={`min-h-[100dvh] bg-slate-950 text-slate-100 p-1 sm:p-2 lg:p-3 font-sans overflow-x-hidden overflow-y-auto lg:overflow-hidden flex flex-col ${tensionLevel > 70 ? 'tension-glow-high' : 'tension-glow-low'}`}>
       {tensionLevel > 70 && <div className="high-tension-overlay" />}
+      
+      {/* Phase Transition Overlay */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={phase}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+          className="fixed inset-0 pointer-events-none z-[200]"
+        >
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 0.4, 0] }}
+            transition={{ duration: 1 }}
+            className={`w-full h-full ${phase === 'Night' ? 'bg-indigo-900/40' : 'bg-amber-900/30'}`}
+          />
+        </motion.div>
+      </AnimatePresence>
+
       {/* Night Guide Overlay */}
       <AnimatePresence>
         {phase === 'Night' && isAdminMode && (
@@ -935,23 +1097,7 @@ export default function App() {
         </div>
 
         {/* Code Display */}
-        <div className="flex flex-col items-center gap-1">
-          <span className="text-[9px] font-mono text-slate-500 uppercase tracking-[0.3em]">Code de Sécurité</span>
-          <div className="flex gap-1.5">
-            {codeDigits.map((digit, i) => (
-              <div 
-                key={i} 
-                className={`w-8 h-12 border-2 rounded flex items-center justify-center text-xl font-mono font-bold transition-all duration-500 ${
-                  digit !== null 
-                    ? 'border-cyan-500 text-cyan-400 bg-cyan-950/30 shadow-[0_0_10px_rgba(6,182,212,0.3)]' 
-                    : 'border-slate-800 text-slate-800 bg-slate-900/50'
-                }`}
-              >
-                {digit !== null ? digit : '?'}
-              </div>
-            ))}
-          </div>
-        </div>
+        <CodeDisplay digits={codeDigits} />
 
         {/* Stats & Phase */}
         <div className="flex gap-3 items-center">
@@ -1234,114 +1380,20 @@ export default function App() {
         }`}>
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-9 gap-1.5 sm:gap-2">
             {(isAdminMode ? players : sortedPlayers).map((player) => (
-              <motion.div
+              <PlayerCard 
                 key={player.id}
-                layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                whileHover={{ scale: 1.02 }}
+                player={player}
+                isAdminMode={isAdminMode}
+                doubleAgentChoice={doubleAgentChoice}
+                missingImages={missingImages}
+                handleImageError={handleImageError}
                 onClick={() => {
                   if (isAdminMode) {
                     setSelectedPlayerId(player.id);
                     setIsAdminOpen(true);
                   }
                 }}
-                className={`relative aspect-[4/5] rounded-xl border-2 ${isAdminMode ? 'cursor-pointer' : ''} transition-all duration-300 flex flex-col overflow-hidden group ${
-                  player.status === 'dead' ? 'bg-slate-950 border-slate-800 grayscale' :
-                  player.status === 'eliminated' ? 'bg-slate-950 border-slate-900 opacity-50' :
-                  (isAdminMode || player.revealed) ? (player.role === 'Espion' ? 'bg-red-950/20 border-red-500/50 spy-card-glow reveal-anim' : 'bg-emerald-950/20 border-emerald-500/50 agent-card-glow reveal-anim') :
-                  'bg-slate-900/80 border-slate-800 hover:border-slate-600'
-                }`}
-              >
-                {/* Card Content */}
-                {(() => {
-                  const roleConfig = ROLES_CONFIG[player.role];
-                  const hasImage = !missingImages.has(roleConfig.image);
-                  const isRoleVisible = true; // Always show roles on both screens
-
-                  return (
-                    <>
-                      {/* Custom Image */}
-                      {isRoleVisible && (
-                        <img 
-                          src={roleConfig.image} 
-                          alt={player.role}
-                          className={`absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-300 ${hasImage ? 'opacity-100' : 'opacity-0'}`}
-                          onError={() => handleImageError(roleConfig.image)}
-                        />
-                      )}
-
-                      {/* Player Number (Top Right) - ONLY SHOW FOR MJ */}
-                      {isAdminMode && (
-                        <div className="absolute top-1.5 right-1.5 z-20 bg-black/80 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-white/10">
-                          <span className="text-lg font-display font-black text-white">
-                            {player.id.toString().padStart(2, '0')}
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Fallback UI - Only show if not revealed or image is missing */}
-                      {(!isRoleVisible || !hasImage) && (
-                        <>
-                          {/* Character Placeholder / Background */}
-                          <div className="absolute inset-0 bg-gradient-to-b from-slate-800 to-slate-950 flex items-center justify-center z-0">
-                            {!isRoleVisible ? (
-                              <UserX size={40} className="text-slate-800" />
-                            ) : (
-                              <div className="opacity-20">
-                                {React.cloneElement(roleConfig.icon as React.ReactElement, { size: 56 })}
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Card Header (Icons like in PDF) */}
-                          {isRoleVisible && (
-                            <div className="absolute top-1.5 left-1.5 flex flex-col gap-1 z-10">
-                              <div className="bg-black/60 backdrop-blur-sm p-1 rounded-md flex flex-col items-center min-w-[30px]">
-                                <span className="text-[7px] font-bold uppercase text-slate-300 leading-none mb-0.5">Rôle</span>
-                                {roleConfig.phase === 'night' ? <Pause size={10} className="text-white rotate-90" /> : <Zap size={10} className="text-amber-400" />}
-                              </div>
-                              <div className="bg-black/60 backdrop-blur-sm p-1 rounded-full flex items-center justify-center w-6 h-6">
-                                {roleConfig.camp === 'spy' || (player.role === 'Agent Double' && doubleAgentChoice === 'espion') ? (
-                                  <span className="text-[10px]">👎</span>
-                                ) : roleConfig.camp === 'agent' || (player.role === 'Agent Double' && doubleAgentChoice === 'agent') ? (
-                                  <span className="text-[10px]">👍</span>
-                                ) : (
-                                  <div className="flex gap-0.5">
-                                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full" />
-                                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Bottom Info Box (Like PDF) */}
-                          <div className="mt-auto relative z-10 bg-black/80 backdrop-blur-sm p-1.5 sm:p-2 border-t border-white/5">
-                            <p className={`text-[7px] font-mono uppercase tracking-widest mb-0 ${player.status !== 'active' ? 'text-slate-600' : 'text-slate-500'}`}>
-                              {player.status === 'active' ? 'Opérationnel' : 'Éliminé'}
-                            </p>
-                            <h4 className={`font-display font-bold leading-tight text-[10px] sm:text-[11px] uppercase italic tracking-tighter ${
-                              !isRoleVisible ? 'text-white' : roleConfig.color
-                            }`}>
-                              {isRoleVisible ? (player.role === 'Agent Double' && doubleAgentChoice ? `Agent Double (${doubleAgentChoice === 'agent' ? 'Agent' : 'Espion'})` : player.role) : player.name}
-                            </h4>
-                          </div>
-                        </>
-                      )}
-
-                      {/* Status Overlay for dead/eliminated */}
-                      {player.status !== 'active' && (
-                        <div className="absolute inset-0 bg-slate-950/40 rounded-2xl flex items-center justify-center pointer-events-none z-30">
-                          <div className="rotate-[-15deg] border-4 border-red-600/50 px-2 py-1 rounded text-red-600/50 font-black uppercase text-xs backdrop-blur-sm bg-black/20">
-                            Éliminé
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  );
-                })()}
-              </motion.div>
+              />
             ))}
           </div>
         </div>
