@@ -364,6 +364,12 @@ export default function App() {
   // Hacker Logic
   const [isHackerPowerActive, setIsHackerPowerActive] = useState(false);
 
+  // Agent Russe Logic
+  const [russeDuelResult, setRusseDuelResult] = useState<'win' | 'lose' | null>(null);
+  const [russeTargetId, setRusseTargetId] = useState<number | null>(null);
+  const [russeAgentId, setRusseAgentId] = useState<number | null>(null);
+  const [showRusseDuelModal, setShowRusseDuelModal] = useState(false);
+
   // Agent Double Logic
   const [doubleAgentRoundsElapsed, setDoubleAgentRoundsElapsed] = useState(0);
   const [doubleAgentChoice, setDoubleAgentChoice] = useState<'agent' | 'espion' | null>(null);
@@ -427,6 +433,10 @@ export default function App() {
           setEliminatedByVoteId(data.eliminatedByVoteId || null);
           setIsVoteRevealPhase(data.isVoteRevealPhase || false);
           setIsRoleRevealed(data.isRoleRevealed || false);
+          setRusseDuelResult(data.russeDuelResult || null);
+          setRusseTargetId(data.russeTargetId || null);
+          setShowRusseDuelModal(data.showRusseDuelModal || false);
+          setRusseAgentId(data.russeAgentId || null);
           setIsHackerPowerActive(data.isHackerPowerActive || false);
           setDoubleAgentRoundsElapsed(data.doubleAgentRoundsElapsed || 0);
           setDoubleAgentChoice(data.doubleAgentChoice || null);
@@ -485,7 +495,9 @@ export default function App() {
     nightNumber, isNightActionModalOpen, geminiTwinId, engineerTargetId, spyTargetId,
     doctorSavedId, ghostTargetId, ghostRoundsElapsed, ghostSuccess, showGhostSuccessModal,
     mouchardTargetId, isVoteMode, votes, voteTieMessage, eliminatedByVoteId,
-    isVoteRevealPhase, isRoleRevealed, isHackerPowerActive, doubleAgentRoundsElapsed,
+    isVoteRevealPhase, isRoleRevealed, isHackerPowerActive, 
+    russeDuelResult, russeTargetId, russeAgentId, showRusseDuelModal,
+    doubleAgentRoundsElapsed, 
     doubleAgentChoice, nightEliminatedPlayerId, ghostEliminatedPlayerId, isNightRevealPhase, nightRevealStep,
     investigatorTargetId, showInvestigatorResult
   ]);
@@ -526,6 +538,10 @@ export default function App() {
           eliminatedByVoteId,
           isVoteRevealPhase,
           isRoleRevealed,
+          russeDuelResult,
+          russeTargetId,
+          russeAgentId,
+          showRusseDuelModal,
           isHackerPowerActive,
           doubleAgentRoundsElapsed,
           doubleAgentChoice,
@@ -562,6 +578,10 @@ export default function App() {
     setIsTimerRunning(false);
     setCodeDigits([null, null, null, null, null, null]);
     setIsAdminOpen(false);
+    setRusseDuelResult(null);
+    setRusseTargetId(null);
+    setRusseAgentId(null);
+    setShowRusseDuelModal(false);
     setSelectedPlayerId(null);
     setGhostTargetId(null);
     setGhostRoundsElapsed(0);
@@ -1016,8 +1036,8 @@ export default function App() {
         <div className="flex flex-col sm:flex-row items-center sm:items-start xl:items-center gap-3 text-center sm:text-left">
           <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden shrink-0 bg-slate-900 border-2 border-slate-700 shadow-[0_0_20px_rgba(0,0,0,0.3)]">
             <img 
-              src="/logo_osi.png" 
-              alt="logo_osi" 
+              src="/logo osi.png" 
+              alt="OSI Logo" 
               className="w-full h-full object-cover"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
@@ -1868,6 +1888,114 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      {/* Agent Russe Duel Modal */}
+      <AnimatePresence>
+        {showRusseDuelModal && (
+          <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-950/95 backdrop-blur-2xl"
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative w-full max-w-xl bg-slate-900 border-2 border-red-500/50 rounded-3xl shadow-[0_0_100px_rgba(239,68,68,0.2)] overflow-hidden flex flex-col items-center text-center p-8 sm:p-12"
+            >
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-600 via-white to-red-600 animate-pulse" />
+              
+              <RotateCcw size={80} className="text-red-500 mb-6 animate-spin-slow" />
+              
+              <h2 className="text-4xl sm:text-5xl font-display font-black uppercase italic tracking-tighter mb-4 text-white">
+                Roulette Russe
+              </h2>
+              
+              <div className="flex items-center gap-6 mb-12">
+                <div className="flex flex-col items-center">
+                  <div className="w-20 h-20 rounded-2xl bg-slate-800 border-2 border-red-500 flex items-center justify-center mb-2 shadow-lg shadow-red-500/20">
+                     <RotateCcw size={40} className="text-red-400" />
+                  </div>
+                  <span className="text-xs font-bold uppercase text-red-400">Agent Russe</span>
+                </div>
+                
+                <div className="text-4xl font-black text-slate-700 italic">VS</div>
+                
+                <div className="flex flex-col items-center">
+                  <div className="w-20 h-20 rounded-2xl bg-slate-800 border-2 border-slate-700 flex items-center justify-center mb-2">
+                     <HelpCircle size={40} className="text-slate-500" />
+                  </div>
+                  <span className="text-xs font-bold uppercase text-slate-400">
+                    {players.find(p => p.id === russeTargetId)?.name || 'Cible'}
+                  </span>
+                </div>
+              </div>
+
+              {russeDuelResult === null ? (
+                <div className="w-full space-y-6">
+                  <p className="text-slate-400 font-medium">
+                    Un duel à mort s'engage. Qui succombera à la pression ?
+                  </p>
+                  {isAdminMode && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <button 
+                         onClick={() => setRusseDuelResult('win')}
+                         className="py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/20"
+                      >
+                        Victoire Russe
+                      </button>
+                      <button 
+                         onClick={() => setRusseDuelResult('lose')}
+                         className="py-4 bg-red-600 hover:bg-red-500 text-white rounded-2xl font-bold uppercase tracking-wider transition-all shadow-lg shadow-red-500/20"
+                      >
+                        Victoire Cible
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-8"
+                >
+                  <div className={`text-6xl font-display font-black uppercase tracking-tighter mb-4 ${russeDuelResult === 'win' ? 'text-emerald-400' : 'text-red-500'}`}>
+                    {russeDuelResult === 'win' ? 'SURVIE' : 'ÉLIMINATION'}
+                  </div>
+                  
+                  <p className="text-slate-300">
+                    {russeDuelResult === 'win' 
+                      ? "L'Agent Russe survit et sa cible est éliminée. Son identité reste classée secret défense." 
+                      : "L'Agent Russe n'a pas survécu à son propre jeu. Son identité est révélée."}
+                  </p>
+
+                  {isAdminMode && (
+                    <button 
+                      onClick={() => {
+                        if (russeDuelResult === 'win' && russeTargetId !== null) {
+                          toggleStatus(russeTargetId, 'eliminated');
+                        } else if (russeDuelResult === 'lose' && russeAgentId !== null) {
+                          toggleStatus(russeAgentId, 'eliminated');
+                          toggleReveal(russeAgentId);
+                        }
+                        setShowRusseDuelModal(false);
+                        setRusseDuelResult(null);
+                        setRusseTargetId(null);
+                        setRusseAgentId(null);
+                      }}
+                      className="px-8 py-3 bg-white text-slate-950 rounded-xl font-bold uppercase tracking-wider hover:bg-slate-200 transition-colors"
+                    >
+                      Appliquer le Verdict
+                    </button>
+                  )}
+                </motion.div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Dashboard Modal */}
       <AnimatePresence>
         {isDashboardOpen && (
@@ -2265,6 +2393,57 @@ export default function App() {
                               {p.name} {p.id === selectedPlayerId ? '(Lui-même)' : ''}
                             </button>
                           ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Agent Russe Logic */}
+                    {players.find(p => p.id === selectedPlayerId)?.role === 'Agent Russe' && (
+                      <div className="mb-6 p-4 bg-red-950/20 border border-red-500/30 rounded-2xl">
+                        <h3 className="text-[10px] font-mono text-red-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                          <RotateCcw size={12} className="text-red-400" />
+                          Duel Roulette Russe
+                        </h3>
+                        <p className="text-xs text-slate-400 mb-4 italic">
+                          L'Agent Russe peut provoquer un duel à sa mort (ou manuellement).
+                        </p>
+                        
+                        <div className="space-y-4">
+                          <div>
+                            <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-2 block">Partenaire de Duel</span>
+                            <div className="grid grid-cols-2 gap-2 max-h-[150px] overflow-y-auto custom-scrollbar p-1">
+                              {players.filter(p => p.id !== selectedPlayerId && p.status === 'active').map(p => (
+                                <button
+                                  key={p.id}
+                                  onClick={() => setRusseTargetId(p.id)}
+                                  className={`p-2 rounded-lg border transition-all text-xs font-medium truncate ${
+                                    russeTargetId === p.id
+                                      ? 'bg-red-500 border-red-400 text-white'
+                                      : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'
+                                  }`}
+                                >
+                                  {p.name}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          <button
+                            disabled={!russeTargetId}
+                            onClick={() => {
+                              setRusseDuelResult(null);
+                              setRusseAgentId(selectedPlayerId);
+                              setShowRusseDuelModal(true);
+                              setIsAdminOpen(false);
+                            }}
+                            className={`w-full py-4 rounded-xl font-bold uppercase tracking-widest transition-all ${
+                              !russeTargetId 
+                                ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700' 
+                                : 'bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-500/20 border-2 border-red-400'
+                            }`}
+                          >
+                            Lancer le Duel
+                          </button>
                         </div>
                       </div>
                     )}
